@@ -4,9 +4,10 @@ const Group = require('./models/group-model');
 const User = require('./models/user-model');
 const Invite = require('./models/invite-model');
 const nodemailer = require('nodemailer');
+const cookieParser = require('cookie-parser');
 
 const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail/com',
+    host: 'smtp.gmail.com',
     port: 465,
     secure: true,
     auth: {
@@ -66,4 +67,36 @@ router.post('/create', async (req, res) => {
     }
 
     res.json({message: 'successfully created'});
+});
+
+router.post('/join', async (req, res) => {
+    const { code } = req.body;
+    const userId = req.cookies.userId;
+
+    //find invite
+
+    const inv = await Invite.findOne({_id: code});
+
+    if (!inv) {
+        return res.status(404).json({message: 'Invalid invite code :('});
+    };
+
+    const grp = await Group.findOne({_id: inv.group});
+
+    if (!grp) {
+        return res.status(404).json({message: 'Cannot find group.'});
+    }
+
+    const user = await User.findOne({_id: userId});
+
+    if (!user) {
+        return res.status(404).json({message: 'User not found.'});
+    }
+    
+    grp.Members.push(user._id);
+    await grp.save();
+
+    user.Group.push(grp._id);
+    await user.save();
+
 });
