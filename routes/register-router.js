@@ -26,19 +26,16 @@ router.post('/', async (req, res) => {
         return res.status(400).json({ message: 'User already exists' });
     }
 
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
     // Create new user
     const newUser = new User({
         Username: username,
-        Password: hashedPassword
+        Password: password
     });
 
     try {
         await newUser.save();
-        res.json({ message: 'User registered successfully' });
+        console.log("hi");
+        res.status(200).json({ message: 'User registered successfully' });
     } catch (err) {
         res.status(400).json({ message: err.message });
     }

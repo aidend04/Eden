@@ -22,8 +22,16 @@ document.querySelector('form').addEventListener('submit', function(event) {
     })
     .then(response => response.json())
     .then(data => {
+        console.log(data);
         if (data.message === 'User registered successfully') {
-            // Redirect to login page or show success message
+            const welcomeMessageDiv = document.getElementById('welcome-message-div');
+            welcomeMessageDiv.classList.remove('hidden');
+            
+    
+            // Wait for 4 seconds (the duration of the animation), then redirect to /group/create
+            setTimeout(() => {
+                window.location.href = '/welcome';
+            }, 1000);
         } else {
             // Show error message
             const errorMessageDiv = document.getElementById('error-message-div');

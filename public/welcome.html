@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang=en>
+    <head>
+        <style>
+            body {
+                background-color: black;
+                margin: 0;
+                height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .welcome-message-div {
+                color: white;
+                font-size: 2em;
+                border-right: 2px solid white;
+                white-space: nowrap;
+                overflow: hidden;
+                animation: typewriter 4s steps(44, end), blink-caret .75s step-end infinite;
+            }
+
+            .hidden {
+                display: none;
+            }
+
+            @keyframes typewriter {
+                0% { width: 0; }
+                100% { width: 14ch; }
+            }
+
+            @keyframes blink-caret {
+                50% { border-color: transparent; }
+            }
+        </style>
+        <body>
+            <div id="welcome-message-div" class="welcome-message-div hidden">Welcome to Eden</div>
+            <script src="/welcome.js"></script>
+        </body>
+    </head>
+</html>

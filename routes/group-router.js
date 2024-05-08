@@ -11,8 +11,8 @@ const transporter = nodemailer.createTransport({
     port: 465,
     secure: true,
     auth: {
-        user: 'eden@gmail.com',
-        pass: 'SEA@eden23'
+        user: 'edenbysea.adm@gmail.com',
+        pass: '@EdenSEA23'
     }
 });
 
@@ -48,7 +48,7 @@ router.post('/create', async (req, res) => {
         await newInvite.save();
         
         const mailOptions = {
-            from: 'eden@gmail.com',
+            from: 'edenbysea.adm@gmail.com',
             to: invitee,
             subject: 'Group Invitation',
             text: `You have been invited to join the group ${Name}. Please use the following code: ${newInvite._id}.
