@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration Page</title>
+    <!-- Include Tailwind CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.16/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .bg-image {
+            background-image: url('https://cdn.pixabay.com/photo/2016/07/22/16/29/fog-1535201_1280.jpg');
+            background-size: cover;
+            background-position: center;
+        }
+    </style>
+</head>
+<body class="bg-image flex items-center justify-center h-screen">
+    <div class="bg-blue-50 p-8 rounded shadow-md w-80">
+        <h2 class="text-2xl font-bold mb-6 text-center">Sign Up</h2>
+        <!-- Add this div to display error messages -->
+        <div id="error-message-div" class="bg-red-500 text-white px-4 py-2 mb-4 hidden">Error message here</div>
+        <form>
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="username">Username</label>
+                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="username" type="text" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="password">Password</label>
+                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="password" type="password" required>
+            </div>
+            <div class="mb-6">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="password_two">Re-enter Password</label>
+                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="password_two" type="password" required>
+            </div>
+            <div class="flex items-center justify-center mb-6">
+                <button class="bg-green-800 justhover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
+                    Register
+                </button>
+            </div>
+        </form>
+    </div>
+    <script src="register.js"></script>
+</body>
+</html>
