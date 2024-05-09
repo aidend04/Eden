@@ -13,20 +13,22 @@ const transporter = nodemailer.createTransport({
     secure: true,
     auth: {
         user: 'edenbysea.adm@gmail.com',
-        pass: '@EdenSEA23'
+        pass: 'tdwa fczg boku pvuq'
     }
 });
 
 
 router.get('/create', async (req, res) => {
-    res.sendFile(path.join(__dirname, '../public', 'create.html'));
+    res.sendFile(path.join(__dirname, '../public', 'create-join.html'));
 });
 router.post('/create', async (req, res) => {
     //request from front end -- please send grpName and Adm username, and invitee emails
     const { Name, GroupAdm, invitees } = req.body;
 
+    console.log(req.body);
+
     //find user
-    const admUser = await User.findOne({username: GroupAdm});
+    const admUser = await User.findOne({Username: GroupAdm});
 
     if (!admUser) {
         return res.status(404).json({message: 'User not found'});
@@ -39,10 +41,17 @@ router.post('/create', async (req, res) => {
         Members: [admUser._id]
     });
 
-    await newGroup.save();
+    try {
+        await newGroup.save();
+    } catch (error) {
+        if (error.code === 11000) {
+            res.status(400).send({ message: 'Group name already exists.' });
+            return;
+        }
+        throw error;
+    }
 
-    admUser.groups.push(newGroup._id);
-    await admUser.save();
+    await User.updateOne({ _id: admUser._id }, { $set: { Group: newGroup._id } });
 
     for (const invitee of invitees) {
         const newInvite = new Invite({

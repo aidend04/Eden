@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Create Group</title>
+
+        <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.16/dist/tailwind.min.css" rel="stylesheet">
+        <style>
+            .bg-image {
+                background-image: url('https://cdn.pixabay.com/photo/2018/01/09/20/24/wood-3072434_1280.jpg');
+                background-size: cover;
+                background-position: center;
+            }
+        </style>
+    </head>
+
+    <body class="bg-black flex items-center justify-start h-screen">
+        <div id="left-box" class="bg-blue-50 p-8 shadow-md h-full w-1/2 text-center">
+            <form id="create-group">
+                <h2 class="text-4xl font-bold justify-center mt-20">Create a Group</h2>
+                <div class="mb 4 mt-8">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="username">Your Username:</label>
+                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="username" type="text" required>
+                </div>
+                <div class="mb-4 mt-8">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="grp-name">Group Name:</label>
+                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="grp-name" type="text" required>
+                </div>
+                <div class="mb 4 mt-8">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="grp-mem">Group Members (Emails with "," for each new email):</label>
+                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="grp-mem" type="text" required>
+                </div>
+                <div class="flex items-center justify-center mt-8 mb-6">
+                    <button class="bg-green-800 justhover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
+                        Create
+                    </button>
+                </div>
+            </form>
+        </div>
+        <div class="w-1/5">
+            <div class="self-center mx-4">
+                <p class="text-center text-xl text-white">-OR-</p>
+            </div>
+        </div>
+        <div id="right-box" class = "bg-blue-50 p-8 rounded shadow-md w-1/4 justify-center">
+            <form id="got-code">
+                <div class="mb-4">
+                    <h2 class="text-2xl font-bold mb-6 text-center">Enter Code</h2>
+                </div>
+                <div class="flex justify-between mb-4">
+                    <input type="text" class="w-1/5 p-2 rounded border-2 border-black" maxlength="1">
+                    <input type="text" class="w-1/5 p-2 rounded border-2 border-black" maxlength="1">
+                    <input type="text" class="w-1/5 p-2 rounded border-2 border-black" maxlength="1">
+                    <input type="text" class="w-1/5 p-2 rounded border-2 border-black" maxlength="1">
+                </div>
+
+                <div class="flex items-center justify-center">
+                    <button class="bg-green-800 justhover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
+                        Join
+                    </button>
+                </div>
+
+            </form>
+        </div>
+        <script src="/create.js"></script>
+    </body>
+</html>
+
