@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const Group = require('./models/group-model');
-const User = require('./models/user-model');
-const Invite = require('./models/invite-model');
+const Group = require('../models/group-model');
+const User = require('../models/user-model');
+const Invite = require('../models/invite-model');
 const nodemailer = require('nodemailer');
 const cookieParser = require('cookie-parser');
+const path = require('path');
 
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
@@ -16,6 +17,10 @@ const transporter = nodemailer.createTransport({
     }
 });
 
+
+router.get('/create', async (req, res) => {
+    res.sendFile(path.join(__dirname, '../public', 'create.html'));
+});
 router.post('/create', async (req, res) => {
     //request from front end -- please send grpName and Adm username, and invitee emails
     const { Name, GroupAdm, invitees } = req.body;
@@ -100,3 +105,5 @@ router.post('/join', async (req, res) => {
     await user.save();
 
 });
+
+module.exports = router;
