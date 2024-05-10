@@ -19,15 +19,37 @@ document.querySelector('#create-group').addEventListener('submit', function(even
             'Content-Type': 'application/json'
         },
         body: JSON.stringify(data)
-    }).then(response => {
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
+    }).then(response => response.json())
+    .then(data => {
+
+        const errorMessageDiv = document.getElementById('error-message-div');
+        console.log(data.message);
+        
+        if (data.message === 'Group name already exists.') {
+            errorMessageDiv.textContent = 'A group already uses that name, please try again';
+            errorMessageDiv.classList.remove('hidden');
+        } else if (data.message === 'User not found') {
+            errorMessageDiv.textContent = 'Sorry, this might be an us issue. Please try again. Double check the username!';
+            errorMessageDiv.classList.remove('hidden');
+        } else {
+            errorMessageDiv.textContent = 'Looks like you are already in a group, please login'
+            errorMessageDiv.classList.remove('hidden');
+            setTimeout(() => {
+                window.location.href = '/login';
+            }, 1000);
+
         }
-        return response.json();
-    }).then(data => {
-        console.log('Success:', data);
-    }).catch((error) => {
-        console.error('Error:', error);
+        
+        
+        if (data.message === 'Success'){
+            console.log('Success:', data);
+            const welcomeMessageDiv = document.getElementById('welcome-message-div');
+            welcomeMessageDiv.classList.remove('hidden');
+    
+            setTimeout(() => {
+                window.location.href = '/login';
+            }, 1000);
+        }
     });
 });
 
@@ -38,7 +60,7 @@ document.querySelector('#got-code').addEventListener('submit', function(event) {
     let code = Array.from(document.querySelectorAll('#got-code input')).map(input => input.value).join('');
 
     // Send a POST request to the server
-    fetch('/group/join', { // replace '/group/join' with your actual endpoint
+    fetch('/group/join', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'

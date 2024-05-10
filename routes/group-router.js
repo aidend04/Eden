@@ -30,8 +30,14 @@ router.post('/create', async (req, res) => {
     //find user
     const admUser = await User.findOne({Username: GroupAdm});
 
+
     if (!admUser) {
-        return res.status(404).json({message: 'User not found'});
+        console.log('hi');
+        return res.status(404).send({message: 'User not found'});
+    }
+
+    if (admUser.Group){
+        return res.status(400).send({message: 'Looks like you got a group'})
     }
 
     //creating grp
@@ -80,7 +86,7 @@ router.post('/create', async (req, res) => {
 
     }
 
-    res.json({message: 'successfully created'});
+    res.json({message: 'Success'});
 });
 
 router.post('/join', async (req, res) => {
