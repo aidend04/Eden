@@ -7,13 +7,15 @@ const nodemailer = require('nodemailer');
 const cookieParser = require('cookie-parser');
 const path = require('path');
 
+require('dotenv').config();
+
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
     port: 465,
     secure: true,
     auth: {
-        user: 'edenbysea.adm@gmail.com',
-        pass: 'tdwa fczg boku pvuq'
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
     }
 });
 
@@ -68,7 +70,7 @@ router.post('/create', async (req, res) => {
         await newInvite.save();
         
         const mailOptions = {
-            from: 'edenbysea.adm@gmail.com',
+            from: process.env.EMAIL_USER,
             to: invitee,
             subject: 'Group Invitation',
             text: `You have been invited to join the group ${Name}. Please use the following code: ${newInvite._id}.

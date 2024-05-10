@@ -3,6 +3,7 @@ const router = express.Router();
 const bcrypt = require('bcrypt');
 const User = require("../models/user-model");
 const Group = require("../models/group-model");
+const cookieParser = require("cookie-parser");
 const path = require('path');
 
 
@@ -22,15 +23,25 @@ router.post('/', async (req, res) => {
     }
 
     const validPass = await bcrypt.compare(password, user.Password);
+    let auth = false;
 
     if (!validPass){
         return res.status(400).send({message: 'Incorrect password' });
+    } else {
+        auth = true;
     }
+
+    if (auth){
+        req.session.loggedIn = true;
+    };
+
+    
 
     const grp = await Group.findOne(user.Group);
 
     if (grp){
         return res.status(200).send({message: `${grp.Name}`});
+
     } else {
         return res.status(200).send({message: 'No group'});
     }
