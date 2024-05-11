@@ -61,6 +61,8 @@ router.post('/create', async (req, res) => {
 
     await User.updateOne({ _id: admUser._id }, { $set: { Group: newGroup._id } });
 
+    req.session.groupId = newGroup.Name;
+
     for (const invitee of invitees) {
         const newInvite = new Invite({
             group: newGroup._id
@@ -93,33 +95,48 @@ router.post('/create', async (req, res) => {
 
 router.post('/join', async (req, res) => {
     const { code } = req.body;
-    const userId = req.cookies.userId;
+    const userId = req.session.userId;
 
     //find invite
+    console.log(code);
 
     const inv = await Invite.findOne({_id: code});
+    console.log(inv);
 
     if (!inv) {
-        return res.status(404).json({message: 'Invalid invite code :('});
+        console.log("hi");
+        return res.status(404).send({message: 'Invalid invite code'});
     };
+
+    if (inv.used){
+        await Invite.deleteOne({_id: code});
+        return res.status(404).send({message: 'This code is no longer valid.'});
+    } else {
+        await Invite.updateOne({_id: code}, {used: true});
+    }
 
     const grp = await Group.findOne({_id: inv.group});
 
     if (!grp) {
-        return res.status(404).json({message: 'Cannot find group.'});
+        return res.status(404).send({message: 'Cannot find group.'});
     }
 
-    const user = await User.findOne({_id: userId});
+    const user = await User.findOne({Username: userId});
 
     if (!user) {
-        return res.status(404).json({message: 'User not found.'});
+        return res.status(404).send({message: 'User not found.'});
     }
     
     grp.Members.push(user._id);
     await grp.save();
 
-    user.Group.push(grp._id);
-    await user.save();
+    User.updateOne({Username: userId}, {Group: grp._id});
+
+    req.session.groupId = grp.Name;
+
+    await Invite.deleteOne({_id: code});
+
+    return res.status(200).send({message: 'success'});
 
 });
 

@@ -66,14 +66,25 @@ document.querySelector('#got-code').addEventListener('submit', function(event) {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({ code: code })
-    }).then(response => {
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
+    }).then(response =>
+        response.json()).then(data => {
+        console.log(data.message);
+        const errorMessageDiv = document.getElementById('error-message-div2');
+        const welcomeMessageDiv = document.getElementById('welcome-message-div2');
+        if (data.message === 'Invalid invite code'){
+            console.log('hi');
+            errorMessageDiv.textContent = "Invalid code";
+            errorMessageDiv.classList.remove("hidden");
+        } else if (data.message === 'This code is no longer valid.'){
+            errorMessageDiv.textContent = "This code has already been used";
+            errorMessageDiv.classList.remove("hidden");
+        } else if (data.message === 'Cannot find group.'){
+            errorMessageDiv.textContent = "This group no longer exists.";
+            errorMessageDiv.classList.remove("hidden");
+        } else {
+            errorMessageDiv.classList.add("hidden");
+            welcomeMessageDiv.textContent = "Success";
+            welcomeMessageDiv.classList.remove("hidden");
         }
-        return response.json();
-    }).then(data => {
-        console.log('Success:', data);
-    }).catch((error) => {
-        console.error('Error:', error);
     });
 });

@@ -33,11 +33,12 @@ router.post('/', async (req, res) => {
 
     if (auth){
         req.session.loggedIn = true;
+        req.session.userId = user.Username;
     };
 
     
 
-    const grp = await Group.findOne(user.Group);
+    const grp = await Group.findOne({ _id: user.Group });
 
     if (grp){
         return res.status(200).send({message: `${grp.Name}`});

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
+const cookieParser = require('cookie-parser');
 const User = require('../models/user-model');
 
 const path = require('path');
@@ -34,7 +35,8 @@ router.post('/', async (req, res) => {
 
     try {
         await newUser.save();
-        console.log("hi");
+        req.session.loggedIn = true;
+        req.session.userId = username;
         res.status(200).json({ message: 'User registered successfully' });
     } catch (err) {
         res.status(400).json({ message: err.message });
