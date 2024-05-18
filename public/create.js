@@ -2,12 +2,10 @@
 document.querySelector('#create-group').addEventListener('submit', function(event) {
     event.preventDefault();
 
-    let username = document.querySelector('#username').value;
     let groupName = document.querySelector('#grp-name').value;
     let groupMembers = document.querySelector('#grp-mem').value;
 
     let data = {
-        GroupAdm: username,
         Name: groupName,
         invitees: groupMembers.split(',') // split the string into an array of emails
     };
@@ -31,23 +29,20 @@ document.querySelector('#create-group').addEventListener('submit', function(even
         } else if (data.message === 'User not found') {
             errorMessageDiv.textContent = 'Sorry, this might be an us issue. Please try again. Double check the username!';
             errorMessageDiv.classList.remove('hidden');
-        } else {
+        } else if (data.message === 'looks like you got a group'){
             errorMessageDiv.textContent = 'Looks like you are already in a group, please login'
             errorMessageDiv.classList.remove('hidden');
             setTimeout(() => {
                 window.location.href = '/login';
             }, 1000);
 
-        }
-        
-        
-        if (data.message === 'Success'){
+        } else if (data.message === 'Success'){
             console.log('Success:', data);
             const welcomeMessageDiv = document.getElementById('welcome-message-div');
             welcomeMessageDiv.classList.remove('hidden');
     
             setTimeout(() => {
-                window.location.href = '/login';
+                window.location.href = '/home';
             }, 1000);
         }
     });
@@ -85,6 +80,10 @@ document.querySelector('#got-code').addEventListener('submit', function(event) {
             errorMessageDiv.classList.add("hidden");
             welcomeMessageDiv.textContent = "Success";
             welcomeMessageDiv.classList.remove("hidden");
+
+            setTimeout(() => {
+                window.location.href = '/home';
+            }, 1000);
         }
     });
 });

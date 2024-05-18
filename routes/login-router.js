@@ -41,6 +41,7 @@ router.post('/', async (req, res) => {
     const grp = await Group.findOne({ _id: user.Group });
 
     if (grp){
+        req.session.groupId = grp.Name;
         return res.status(200).send({message: `${grp.Name}`});
 
     } else {

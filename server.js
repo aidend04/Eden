@@ -17,6 +17,7 @@ const edenStore = new MongoDBStore({
 });
 
 app.use(session({
+    name: 'session_token',
     secret: process.env.SESSION_SECRET,
     cookie: {maxAge: 1000 * 60 * 30},
     store: edenStore,
@@ -26,7 +27,9 @@ app.use(session({
 
 let registerRouter = require("./routes/register-router");
 let loginRouter = require("./routes/login-router");
+let logoutRouter = require("./routes/logout-router");
 let groupRouter = require("./routes/group-router");
+let homeRouter = require("./routes/home-router");
 
 mongoose.connect('mongodb://localhost:27017/Eden')
 .then(() => console.log('Connected to MongoDB'))
@@ -37,6 +40,7 @@ app.use(express.json());
 
 app.use('/register', registerRouter);
 app.use('/login', loginRouter);
+app.use('/logout', logoutRouter);
 
 app.use((req, res, next) => {
     if (!req.session.loggedIn) {
@@ -46,14 +50,25 @@ app.use((req, res, next) => {
     }
 });
 
+app.get('/', (req, res) => {
+    res.send('testing...');
+});
+
+app.use('/home', homeRouter);
+
+app.use((req, res, next) => {
+
+    console.log(req.session.groupId);
+    if (req.session.groupId) {
+        res.redirect('/home');
+    } else {
+        next();
+    }
+});
 app.use('/group', groupRouter);
 
 app.get('/welcome', (req, res) => {
     res.sendFile(path.join(__dirname, './public', 'welcome.html'));
-});
-
-app.get('/', (req, res) => {
-    res.send('testing...');
 });
 
 app.listen(port, () => {

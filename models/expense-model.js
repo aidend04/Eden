@@ -29,7 +29,7 @@ const expenseSchema = new Schema({
             ref: 'User'
         },
         amount: Number,
-        paid: false
+        paid: { type: Boolean, default: false }
     }],
     recurring: {
         interval: {
@@ -45,5 +45,5 @@ const expenseSchema = new Schema({
     }
 });
 
-const Expense = mogoose.model('Expense', expenseSchema);
+const Expense = mongoose.model('Expense', expenseSchema);
 module.exports = Expense;

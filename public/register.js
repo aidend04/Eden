@@ -31,7 +31,7 @@ document.querySelector('form').addEventListener('submit', function(event) {
             // Wait for 4 seconds (the duration of the animation), then redirect to /group/create
             setTimeout(() => {
                 window.location.href = '/welcome';
-            }, 1000);
+            }, 10000);
         } else {
             // Show error message
             const errorMessageDiv = document.getElementById('error-message-div');

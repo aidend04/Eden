@@ -25,10 +25,11 @@ router.get('/create', async (req, res) => {
 });
 router.post('/create', async (req, res) => {
     //request from front end -- please send grpName and Adm username, and invitee emails
-    const { Name, GroupAdm, invitees } = req.body;
+    const { Name, invitees } = req.body;
 
     console.log(req.body);
 
+    const GroupAdm = req.session.userId;
     //find user
     const admUser = await User.findOne({Username: GroupAdm});
 
@@ -113,7 +114,7 @@ router.post('/join', async (req, res) => {
         return res.status(404).send({message: 'This code is no longer valid.'});
     } else {
         await Invite.updateOne({_id: code}, {used: true});
-    }
+    }   
 
     const grp = await Group.findOne({_id: inv.group});
 
@@ -130,7 +131,7 @@ router.post('/join', async (req, res) => {
     grp.Members.push(user._id);
     await grp.save();
 
-    User.updateOne({Username: userId}, {Group: grp._id});
+    await User.updateOne({Username: userId}, {Group: grp._id});
 
     req.session.groupId = grp.Name;
 
