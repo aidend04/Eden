@@ -52,8 +52,6 @@
 
         .open .menu-ctr {
             display: absolute;
-            ba
-
         }
         </style>
 </head>
@@ -111,6 +109,11 @@
         let monthAbbreviations = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
         let currentMonth = new Date().getMonth();
         monthElement.textContent = monthAbbreviations[currentMonth];
+
+        document.getElementById('menu-btn').addEventListener('click', function ()
+            {
+                this.classList.toggle('open');
+            });
     </script>
 </body>
 </html>
