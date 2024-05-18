@@ -1,26 +1,6 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <!-- Add Tailwind CSS -->
-        <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-        <style>
-        .expenses {
-            display: flex;
-            justify-content: space-between;
-            position: relative;
-            padding: 0 10px;
-            font-size: 1.5em;
-        }
-        .arrow-container {
-            position: absolute;
-            top: 0;
-            right: 0;
-        }
-        #month {
-            display: block;
-            text-align: center;
-            margin-top: 2em;
-        }
+    <style>
         .bar {
             transition: transform 0.3s, opacity 0.3s;
         }
@@ -55,8 +35,12 @@
             ba
 
         }
-        </style>
-</head>
+    </style>
+
+    <head>
+        <!-- Add Tailwind CSS -->
+        <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    </head>
 
     <body>
         <!-- add a div ontop of app div -->
@@ -74,15 +58,7 @@
             </button>
         </div>
         <div id="app" class="grid grid-cols-3 gap-4 items-center justify-center h-screen p-4">
-            <div class="expenses flex flex-col h-1/2 rounded-xl col-span-1 row-span-2 bg-gray-200 overflow-auto">
-            Expenses
-            <div class="arrow-container absolute top-0 right-0 mr-2">
-                <div class="arrow">></div>
-            </div>
-            <div class="month-text text-center w-full flex-grow">
-                <span id="month" class="mx-auto"></span>
-            </div>
-        </div>
+            <div class="h-1/2 rounded-xl col-span-1 row-span-2 bg-gray-200 overflow-auto">Expenses</div>
             <div class="h-1/2 rounded-xl col-span-1 row-span-2 bg-gray-200 overflow-auto">Monthly Outlook</div>
             <div class="h-1/2 rounded-xl col-span-1 row-span-2 bg-gray-200 overflow-auto">Graphs</div>
         </div>
@@ -93,24 +69,28 @@
 
 
 
-    <script>
-        let app = document.getElementById('app');
-        let hour = new Date().getHours();
+        <script>
+            var app = document.getElementById('app');
+            var hour = new Date().getHours();
 
-        if (hour < 6 || hour >= 18) {
-            // Night time
-            app.classList.add('dark');
-            app.classList.add('text-white');
-        } else {
-            // Day time
-            app.classList.add('light');
-            app.classList.add('text-black');
-        }
+            if (hour < 6 || hour >= 18)
+            {
+                // Night time
+                app.classList.add('dark');
+                app.classList.add('text-white');
+            } else
+            {
+                // Day time
+                app.classList.add('light');
+                app.classList.add('text-black');
+            }
 
-        let monthElement = document.getElementById('month');
-        let monthAbbreviations = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-        let currentMonth = new Date().getMonth();
-        monthElement.textContent = monthAbbreviations[currentMonth];
-    </script>
-</body>
+            // menu-btn click event
+            document.getElementById('menu-btn').addEventListener('click', function ()
+            {
+                this.classList.toggle('open');
+            });
+        </script>
+    </body>
+
 </html>
