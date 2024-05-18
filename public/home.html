@@ -19,7 +19,7 @@
         #month {
             display: block;
             text-align: center;
-            margin-top: 2em;
+            margin-top: 1em;
         }
         .bar {
             transition: transform 0.3s, opacity 0.3s;
@@ -57,12 +57,37 @@
 </head>
 
     <body>
-        <!-- add a div ontop of app div -->
+        <div id="popup" class="hidden fixed top-0 left-0 w-full h-full flex items-center justify-center bg-black bg-opacity-50 z-50">
+            <div class="bg-white p-4 rounded">
+                <h2 class="text-2xl mb-4">Add Expense</h2>
+                <form id="expense-form">
+                    <label for="amount">Amount:</label>
+                    <input type="number" id="amount" name="amount" required>
+        
+                    <label for="category">Category:</label>
+                    <input type="text" id="category" name="category">
+        
+                    <label for="date">Date:</label>
+                    <input type="date" id="date" name="date">
+        
+                    <label for="userPaid">User Paid:</label>
+                    <input type="text" id="userPaid" name="userPaid">
+        
+                    <!-- Add fields for usersOwe and recurring as needed -->
+        
+                    <input type="submit" value="Submit">
+                </form>
+                <button id="close-btn" class="absolute top-0 right-0 m-2 mr-96 mt-32">x</button>
+            </div>
+        </div>
         <div class="absolute top-0 left-0 right-0 h-1/2">
             <h1 class="text-block text-4xl text-center pt-20">MOTD</h1>
             <p class="text-block text-2xl text-center">Message of the day</p>
         </div>
-        <div class="absolute top-0 right-0 m-4">
+        <div class="absolute top-0 right-0 m-4 flex items-center">
+            <button id="add-btn" class="relative w-10 h-10 focus:outline-none mr-2 flex items-center justify-center ml-2 mt-3">
+                <span class="text-6xl">+</span>
+            </button>
             <button id="menu-btn" class="relative w-10 h-10 focus:outline-none mr-6">
                 <div class="bar bar1 absolute w-full h-1 bg-black rounded-full transform transition duration-300"></div>
                 <div class="bar bar2 absolute w-full h-1 bg-black rounded-full transform transition duration-300 mt-3">
@@ -72,15 +97,20 @@
             </button>
         </div>
         <div id="app" class="grid grid-cols-3 gap-4 items-center justify-center h-screen p-4">
-            <div class="expenses flex flex-col h-1/2 rounded-xl col-span-1 row-span-2 bg-gray-200 overflow-auto">
-            Expenses
-            <div class="arrow-container absolute top-0 right-0 mr-2">
-                <div class="arrow">></div>
+            <div class="expenses flex flex-col justify-between h-1/2 rounded-xl col-span-1 row-span-2 bg-gray-200 overflow-auto">
+                <div>
+                    Expenses
+                    <div class="arrow-container absolute top-0 right-0 mr-2">
+                        <div class="arrow">></div>
+                    </div>
+                    <div class="month-text text-center w-full">
+                        <span id="month" class="mx-auto"></span>
+                    </div>
+                </div>
+                <div class="text-center w-full flex-grow flex items-center justify-center mb-20">
+                    Looks a little empty...
+                </div>
             </div>
-            <div class="month-text text-center w-full flex-grow">
-                <span id="month" class="mx-auto"></span>
-            </div>
-        </div>
             <div class="h-1/2 rounded-xl col-span-1 row-span-2 bg-gray-200 overflow-auto">Monthly Outlook</div>
             <div class="h-1/2 rounded-xl col-span-1 row-span-2 bg-gray-200 overflow-auto">Graphs</div>
         </div>
@@ -114,6 +144,14 @@
             {
                 this.classList.toggle('open');
             });
+
+        document.getElementById('add-btn').addEventListener('click', function() {
+            document.getElementById('popup').classList.remove('hidden');
+        });
+
+        document.getElementById('close-btn').addEventListener('click', function() {
+            document.getElementById('popup').classList.add('hidden');
+        });
     </script>
 </body>
 </html>
