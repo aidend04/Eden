@@ -2,10 +2,33 @@
 <html lang="en">
 
     <head>
-        <!-- Include Tailwind CSS -->
+        <!-- Add Tailwind CSS -->
         <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
         <style>
-            /* Hamburger menu bar transformations */
+            .expenses {
+                display: flex;
+                justify-content: space-between;
+                position: relative;
+                padding: 0 10px;
+                font-size: 1.5em;
+            }
+
+            .arrow-container {
+                position: absolute;
+                top: 0;
+                right: 0;
+            }
+
+            #month {
+                display: block;
+                text-align: center;
+                margin-top: 2em;
+            }
+
+            .bar {
+                transition: transform 0.3s, opacity 0.3s;
+            }
+
             .bar1 {
                 transform-origin: top left;
             }
@@ -35,7 +58,6 @@
                 z-index: 1;
             }
 
-            /* Menu container transitions */
             .menu-ctr {
                 transition: opacity 0.3s ease, visibility 0.3s ease;
                 opacity: 0;
@@ -46,20 +68,41 @@
                 opacity: 1;
                 visibility: visible;
             }
+
+            .menu {
+                display: flex;
+                width: 75%;
+                height: 60%;
+                min-height: 275px;
+                overflow-y: auto;
+                margin: auto;
+                padding: 1rem;
+                background-color: white;
+                border-radius: 0.5rem;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                align-items: center;
+                justify-content: center;
+            }
+
+            .menu-item {
+                margin-bottom: 1rem;
+            }
+
+            .menu-divider {
+                border-bottom: 1px solid #e5e7eb;
+                margin: 1rem 0;
+            }
         </style>
     </head>
 
     <body class="relative overflow-hidden">
-
-        <!-- Message of the Day Section -->
-        <div class="absolute top-0 left-0 right-0 h-1/2 flex flex-col items-center justify-center pt-20">
-            <h1 class="text-4xl">MOTD</h1>
-            <p class="text-2xl">Message of the day</p>
+        <!-- Add a div on top of the app div -->
+        <div class="absolute top-0 left-0 right-0 h-1/2">
+            <h1 class="text-block text-4xl text-center pt-20">MOTD</h1>
+            <p class="text-block text-2xl text-center">Message of the day</p>
         </div>
-
-        <!-- Hamburger Menu Button -->
         <div class="absolute top-0 right-0 m-4">
-            <button title="Menu Button" id="menu-btn" class="relative w-10 h-10 focus:outline-none mr-6">
+            <button id="menu-btn" class="relative w-10 h-10 focus:outline-none mr-6">
                 <div class="bar bar1 absolute w-full h-1 bg-black rounded-full transform transition duration-300"></div>
                 <div class="bar bar2 absolute w-full h-1 bg-black rounded-full transform transition duration-300 mt-3">
                 </div>
@@ -67,34 +110,26 @@
                 </div>
             </button>
         </div>
-
-        <!-- Main Application Grid -->
         <div id="app" class="grid grid-cols-3 gap-4 items-center justify-center h-screen p-4">
-            <!-- Expenses Section -->
-            <div
-                class="flex flex-col h-1/2 rounded-xl col-span-1 row-span-2 bg-gray-200 overflow-auto relative text-xl px-2">
+            <div class="expenses flex flex-col h-1/2 rounded-xl col-span-1 row-span-2 bg-gray-200 overflow-auto">
                 Expenses
-                <div class="absolute top-0 right-0 mr-2">
-                    <div class="arrow">&gt;</div>
+                <div class="arrow-container absolute top-0 right-0 mr-2">
+                    <div class="arrow">></div>
                 </div>
-                <div class="text-center w-full flex-grow mt-8">
-                    <span id="month" class="block mx-auto"></span>
+                <div class="month-text text-center w-full flex-grow">
+                    <span id="month" class="mx-auto"></span>
                 </div>
             </div>
-            <!-- Monthly Outlook Section -->
             <div class="h-1/2 rounded-xl col-span-1 row-span-2 bg-gray-200 overflow-auto">Monthly Outlook</div>
-            <!-- Graphs Section -->
             <div class="h-1/2 rounded-xl col-span-1 row-span-2 bg-gray-200 overflow-auto">Graphs</div>
         </div>
 
-        <!-- Menu Container -->
         <div id="menu-ctr"
-            class="absolute top-0 left-0 p-8 w-full h-full bg-black bg-opacity-70 flex items-center justify-center">
-            <div
-                class="flex w-3/4 h-3/5 min-h-[275px] overflow-y-auto m-auto p-4 bg-white rounded-md shadow-md items-center justify-center">
-                <ul class="text-black w-full">
-                    <!-- Home Section -->
-                    <li class="mb-4">
+            class="absolute top-0 left-0 p-8 w-full h-full bg-black bg-opacity-70 menu-ctr flex items-center justify-center">
+            <!-- Add menu content here -->
+            <div class="menu">
+                <ul class="text-black">
+                    <li class="menu-item">
                         <div id="home">
                             Home
                             <ul class="ml-4">
@@ -105,9 +140,8 @@
                             </ul>
                         </div>
                     </li>
-                    <div class="border-b border-gray-300 my-4"></div>
-                    <!-- Settings Section -->
-                    <li class="mb-4">
+                    <div class="menu-divider"></div>
+                    <li class="menu-item">
                         <div>
                             Settings
                             <ul class="ml-4">
@@ -122,24 +156,26 @@
         </div>
 
         <script>
-            // Change app theme based on the time of day
             let app = document.getElementById('app');
             let hour = new Date().getHours();
+
             if (hour < 6 || hour >= 18)
             {
-                app.classList.add('bg-gray-900', 'text-white');
+                // Night time
+                app.classList.add('dark');
+                app.classList.add('text-white');
             } else
             {
-                app.classList.add('bg-white', 'text-black');
+                // Day time
+                app.classList.add('light');
+                app.classList.add('text-black');
             }
 
-            // Set the current month
             let monthElement = document.getElementById('month');
             let monthAbbreviations = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
             let currentMonth = new Date().getMonth();
             monthElement.textContent = monthAbbreviations[currentMonth];
 
-            // Toggle menu visibility
             document.getElementById('menu-btn').addEventListener('click', function ()
             {
                 this.classList.toggle('open');
