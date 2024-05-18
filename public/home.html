@@ -1,29 +1,96 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <!-- Add Tailwind CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-</head>
-<body>
-    <div id="app" class="grid grid-cols-3 gap-4 items-center justify-center h-screen p-4">
-        <div class="h-1/2 rounded-xl col-span-1 row-span-2 bg-gray-200 overflow-auto">Expenses</div>
-        <div class="h-1/2 rounded-xl col-span-1 row-span-2 bg-gray-200 overflow-auto">Monthly Outlook</div>
-        <div class="h-1/2 rounded-xl col-span-1 row-span-2 bg-gray-200 overflow-auto">Graphs</div>
-    </div>
-
-    <script>
-        var app = document.getElementById('app');
-        var hour = new Date().getHours();
-
-        if (hour < 6 || hour >= 18) {
-            // Night time
-            app.classList.add('dark');
-            app.classList.add('text-white');
-        } else {
-            // Day time
-            app.classList.add('light');
-            app.classList.add('text-black');
+    <style>
+        .bar {
+            transition: transform 0.3s, opacity 0.3s;
         }
-    </script>
-</body>
+
+        .bar1 {
+            transform-origin: top left;
+        }
+
+        .bar2 {
+            opacity: 1;
+            transform-origin: center;
+        }
+
+        .bar3 {
+            transform-origin: bottom left;
+        }
+
+        .open .bar1 {
+            transform: translateY(-1px) rotate(45deg);
+        }
+
+        .open .bar2 {
+            opacity: 0;
+        }
+
+        .open .bar3 {
+            transform: translateY(1px) rotate(-45deg);
+        }
+
+        .open .menu-ctr {
+            display: absolute;
+            ba
+
+        }
+    </style>
+
+    <head>
+        <!-- Add Tailwind CSS -->
+        <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    </head>
+
+    <body>
+        <!-- add a div ontop of app div -->
+        <div class="absolute top-0 left-0 right-0 h-1/2">
+            <h1 class="text-block text-4xl text-center pt-20">MOTD</h1>
+            <p class="text-block text-2xl text-center">Message of the day</p>
+        </div>
+        <div class="absolute top-0 right-0 m-4">
+            <button id="menu-btn" class="relative w-10 h-10 focus:outline-none mr-6">
+                <div class="bar bar1 absolute w-full h-1 bg-black rounded-full transform transition duration-300"></div>
+                <div class="bar bar2 absolute w-full h-1 bg-black rounded-full transform transition duration-300 mt-3">
+                </div>
+                <div class="bar bar3 absolute w-full h-1 bg-black rounded-full transform transition duration-300 mt-6">
+                </div>
+            </button>
+        </div>
+        <div id="app" class="grid grid-cols-3 gap-4 items-center justify-center h-screen p-4">
+            <div class="h-1/2 rounded-xl col-span-1 row-span-2 bg-gray-200 overflow-auto">Expenses</div>
+            <div class="h-1/2 rounded-xl col-span-1 row-span-2 bg-gray-200 overflow-auto">Monthly Outlook</div>
+            <div class="h-1/2 rounded-xl col-span-1 row-span-2 bg-gray-200 overflow-auto">Graphs</div>
+        </div>
+
+        <div id="menu-ctr" class="hidden top-0 left-0 p-8 w-full h-full bg-black z-1">
+            
+        </div>
+
+
+
+        <script>
+            var app = document.getElementById('app');
+            var hour = new Date().getHours();
+
+            if (hour < 6 || hour >= 18)
+            {
+                // Night time
+                app.classList.add('dark');
+                app.classList.add('text-white');
+            } else
+            {
+                // Day time
+                app.classList.add('light');
+                app.classList.add('text-black');
+            }
+
+            // menu-btn click event
+            document.getElementById('menu-btn').addEventListener('click', function ()
+            {
+                this.classList.toggle('open');
+            });
+        </script>
+    </body>
+
 </html>
