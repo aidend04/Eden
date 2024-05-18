@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
     <head>
         <!-- Add Tailwind CSS -->
         <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
@@ -25,36 +26,87 @@
             transition: transform 0.3s, opacity 0.3s;
         }
 
-        .bar1 {
-            transform-origin: top left;
-        }
+            .arrow-container {
+                position: absolute;
+                top: 0;
+                right: 0;
+            }
 
-        .bar2 {
-            opacity: 1;
-            transform-origin: center;
-        }
+            #month {
+                display: block;
+                text-align: center;
+                margin-top: 2em;
+            }
 
-        .bar3 {
-            transform-origin: bottom left;
-        }
+            .bar {
+                transition: transform 0.3s, opacity 0.3s;
+            }
 
-        .open .bar1 {
-            transform: translateY(-1px) rotate(45deg);
-        }
+            .bar1 {
+                transform-origin: top left;
+            }
 
-        .open .bar2 {
-            opacity: 0;
-        }
+            .bar2 {
+                opacity: 1;
+                transform-origin: center;
+            }
 
-        .open .bar3 {
-            transform: translateY(1px) rotate(-45deg);
-        }
+            .bar3 {
+                transform-origin: bottom left;
+            }
 
-        .open .menu-ctr {
-            display: absolute;
-        }
+            .open .bar1 {
+                transform: translateY(-1px) rotate(45deg);
+                background-color: whitesmoke;
+                z-index: 100;
+            }
+
+            .open .bar2 {
+                opacity: 0;
+            }
+
+            .open .bar3 {
+                transform: translateY(1px) rotate(-45deg);
+                background-color: whitesmoke;
+                z-index: 1;
+            }
+
+            .menu-ctr {
+                transition: opacity 0.3s ease, visibility 0.3s ease;
+                opacity: 0;
+                visibility: hidden;
+            }
+
+            .menu-ctr.show {
+                opacity: 1;
+                visibility: visible;
+            }
+
+            .menu {
+                display: flex;
+                width: 75%;
+                height: 60%;
+                min-height: 275px;
+                overflow-y: auto;
+                margin: auto;
+                padding: 1rem;
+                background-color: white;
+                border-radius: 0.5rem;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                align-items: center;
+                justify-content: center;
+            }
+
+            .menu-item {
+                margin-bottom: 1rem;
+            }
+
+            .menu-divider {
+                border-bottom: 1px solid #e5e7eb;
+                margin: 1rem 0;
+            }
         </style>
-</head>
+    </head>
 
     <body>
         <div id="popup" class="hidden fixed top-0 left-0 w-full h-full flex items-center justify-center bg-black bg-opacity-50 z-50">
@@ -115,34 +167,63 @@
             <div class="h-1/2 rounded-xl col-span-1 row-span-2 bg-gray-200 overflow-auto">Graphs</div>
         </div>
 
-        <div id="menu-ctr" class="hidden top-0 left-0 p-8 w-full h-full bg-black z-1">
-            
+        <div id="menu-ctr"
+            class="absolute top-0 left-0 p-8 w-full h-full bg-black bg-opacity-70 menu-ctr flex items-center justify-center">
+            <!-- Add menu content here -->
+            <div class="menu">
+                <ul class="text-black">
+                    <li class="menu-item">
+                        <div id="home">
+                            Home
+                            <ul class="ml-4">
+                                <li>Dashboard</li>
+                                <li>Expenses</li>
+                                <li>Monthly Outlook</li>
+                                <li>Graphs</li>
+                            </ul>
+                        </div>
+                    </li>
+                    <div class="menu-divider"></div>
+                    <li class="menu-item">
+                        <div>
+                            Settings
+                            <ul class="ml-4">
+                                <li>Profile</li>
+                                <li>Preferences</li>
+                                <li>Logout</li>
+                            </ul>
+                        </div>
+                    </li>
+                </ul>
+            </div>
         </div>
 
+        <script>
+            let app = document.getElementById('app');
+            let hour = new Date().getHours();
 
+            if (hour < 6 || hour >= 18)
+            {
+                // Night time
+                app.classList.add('dark');
+                app.classList.add('text-white');
+            } else
+            {
+                // Day time
+                app.classList.add('light');
+                app.classList.add('text-black');
+            }
 
-    <script>
-        let app = document.getElementById('app');
-        let hour = new Date().getHours();
+            let monthElement = document.getElementById('month');
+            let monthAbbreviations = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+            let currentMonth = new Date().getMonth();
+            monthElement.textContent = monthAbbreviations[currentMonth];
 
-        if (hour < 6 || hour >= 18) {
-            // Night time
-            app.classList.add('dark');
-            app.classList.add('text-white');
-        } else {
-            // Day time
-            app.classList.add('light');
-            app.classList.add('text-black');
-        }
-
-        let monthElement = document.getElementById('month');
-        let monthAbbreviations = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-        let currentMonth = new Date().getMonth();
-        monthElement.textContent = monthAbbreviations[currentMonth];
-
-        document.getElementById('menu-btn').addEventListener('click', function ()
+            document.getElementById('menu-btn').addEventListener('click', function ()
             {
                 this.classList.toggle('open');
+                let menu = document.getElementById('menu-ctr');
+                menu.classList.toggle('show');
             });
 
         document.getElementById('add-btn').addEventListener('click', function() {
