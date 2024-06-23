@@ -12,4 +12,19 @@ router.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../public', 'home.html'));
 });
 
+router.put('/', async (req, res) => {
+    let groupId = req.session.groupId;
+    let group = await Group.findOne({Name: groupId}).populate('Members');
+    
+    if (!group) {
+        return res.status(404).json("No Bueno");
+    }
+
+    let grpMem = await group.Members.map(Member => ({
+        name: Member.Username,
+    }));
+
+    console.log(grpMem);
+    res.json(grpMem);
+})
 module.exports = router;

@@ -10,9 +10,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "agenda": "^5.0.0",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^2.4.3",
-    "connect-mongodb-session": "^2.4.1",
+    "connect-mongodb-session": "^5.0.0",
     "cookie-parser": "^1.4.6",
     "dotenv": "^16.4.5",
     "env": "^0.0.2",

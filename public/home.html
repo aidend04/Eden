@@ -4,7 +4,7 @@
     <head>
         <!-- Add Tailwind CSS -->
         <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-        <style>
+    <style>
         .expenses {
             display: flex;
             justify-content: space-between;
@@ -12,6 +12,160 @@
             padding: 0 10px;
             font-size: 1.5em;
         }
+        .form-content {
+            display: flex;
+            background-color: #fff;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            border-radius: 10px;
+            color: #333;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .form-grid > div {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-row {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            width: 90%;
+        }
+
+        .form-row2 {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-evenly;
+            align-items: center;
+        }
+
+        #recurring {
+            margin-right: 10px;
+        }
+        
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        #expense-form label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        #expense-form input[type="number"],
+        #expense-form input[type="date"],
+        #expense-form select {
+            width: 100%;
+            padding: 5px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        #expense-form input[type="submit"] {
+        width: 100%;
+        padding: 10px;
+        border: none;
+        border-radius: 5px;
+        background-color: #007BFF;
+        color: white;
+        cursor: pointer;
+        }
+
+        #expense-form input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+
+
+
+        #evenly, #custom, #bar {
+            color: rgb(190, 186, 186);
+        }
+
+        #evenly, #custom {
+            position: relative;
+            display: inline-block;
+        }
+
+        #evenly:hover {
+            color:rgba(0, 0, 0, 0.89);
+        }
+
+        #evenly .tooltip {
+            visibility: hidden;
+            width: 150px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            padding: 5px 0;
+            border-radius: 6px;
+            position: absolute;
+            z-index: 1;
+            bottom: 150%;
+            left: 50%;
+            margin-left: -60px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        #evenly .tooltip::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #555 transparent transparent transparent;
+        }
+
+        #evenly:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+
+
+        #custom .tooltip {
+            pointer-events: auto;
+            visibility: hidden;
+            width: 250px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            padding: 5px 0;
+            border-radius: 6px; 
+            position: absolute;
+            z-index: 101;
+            bottom: 150%; /* Adjust this value to position the tooltip just above the #custom element */
+            left: 50%; /* Adjust this value to center the tooltip horizontally */
+            margin-left: -125px; /* Adjust this value to half of the width to keep the tooltip centered */
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        #custom .tooltip::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #555 transparent transparent transparent;
+        }
+
         .arrow-container {
             position: absolute;
             top: 0;
@@ -26,118 +180,273 @@
             transition: transform 0.3s, opacity 0.3s;
         }
 
-            .arrow-container {
-                position: absolute;
-                top: 0;
-                right: 0;
-            }
+        .arrow-container {
+            position: absolute;
+            top: 0;
+            right: 0;
+        }
 
-            #month {
-                display: block;
-                text-align: center;
-                margin-top: 2em;
-            }
+        #month {
+            display: block;
+            text-align: center;
+            margin-top: 2em;
+        }
 
-            .bar {
-                transition: transform 0.3s, opacity 0.3s;
-            }
+        .bar {
+            transition: transform 0.3s, opacity 0.3s;
+        }
 
-            .bar1 {
-                transform-origin: top left;
-            }
+        .bar1 {
+            transform-origin: top left;
+        }
 
-            .bar2 {
-                opacity: 1;
-                transform-origin: center;
-            }
+        .bar2 {
+            opacity: 1;
+            transform-origin: center;
+        }
 
-            .bar3 {
-                transform-origin: bottom left;
-            }
+        .bar3 {
+            transform-origin: bottom left;
+        }
 
-            .open .bar1 {
-                transform: translateY(-1px) rotate(45deg);
-                background-color: whitesmoke;
-                z-index: 100;
-            }
+        .open .bar1 {
+            transform: translateY(-1px) rotate(45deg);
+            background-color: whitesmoke;
+            z-index: 100;
+        }
 
-            .open .bar2 {
-                opacity: 0;
-            }
+        .open .bar2 {
+            opacity: 0;
+        }
 
-            .open .bar3 {
-                transform: translateY(1px) rotate(-45deg);
-                background-color: whitesmoke;
-                z-index: 1;
-            }
+        .open .bar3 {
+            transform: translateY(1px) rotate(-45deg);
+            background-color: whitesmoke;
+            z-index: 1;
+        }
 
-            .menu-ctr {
-                transition: opacity 0.3s ease, visibility 0.3s ease;
-                opacity: 0;
-                visibility: hidden;
-            }
+        .menu-ctr {
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            opacity: 0;
+            visibility: hidden;
+        }
 
-            .menu-ctr.show {
-                opacity: 1;
-                visibility: visible;
-            }
+        .menu-ctr.show {
+            opacity: 1;
+            visibility: visible;
+        }
 
-            .menu {
-                display: flex;
-                width: 75%;
-                height: 60%;
-                min-height: 275px;
-                overflow-y: auto;
-                margin: auto;
-                padding: 1rem;
-                background-color: white;
-                border-radius: 0.5rem;
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-                align-items: center;
-                justify-content: center;
-            }
+        .menu {
+            display: flex;
+            width: 75%;
+            height: 60%;
+            min-height: 275px;
+            overflow-y: auto;
+            margin: auto;
+            padding: 1rem;
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            align-items: center;
+            justify-content: center;
+        }
 
-            .menu-item {
-                margin-bottom: 1rem;
-            }
+        .menu-item {
+            margin-bottom: 1rem;
+        }
 
-            .menu-divider {
-                border-bottom: 1px solid #e5e7eb;
-                margin: 1rem 0;
-            }
-        </style>
+        .menu-divider {
+            border-bottom: 1px solid #e5e7eb;
+            margin: 1rem 0;
+        }
+
+        .open-expense {
+            transform: rotate(-45deg);
+            color: whitesmoke;
+            z-index: 100;
+
+        }
+
+        .close-btn {
+            position: absolute;
+            right: -15px; /* Adjust as needed */
+            top: -15px; /* Adjust as needed */
+            background: #fff; /* Or any color you want */
+            color: #000; /* Or any color you want */
+            height: 30px; /* Adjust as needed */
+            width: 30px; /* Adjust as needed */
+            text-align: center;
+            line-height: 30px; /* Adjust as needed */
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        #overlay {
+            display: none;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background-color: rgba(0, 0, 0, 0.5); /* Black background with 50% opacity */
+            opacity: 100%;
+            z-index: 100; /* Make sure it's on top of everything else */
+        }
+
+        .hidden {
+            position: absolute;
+            left: -9999px;
+        }
+
+            #recurring {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
+        input[type="text"], input[type="number"] {
+        width: 100%;
+        padding: 6px 20px;
+        box-sizing: border-box;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        }
+
+        .small {
+            font-size: 0.8em;
+            color: #888;
+        }
+        .expense-item {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        border: 1px solid #ccc; /* Lighter border color */
+        padding: 10px;
+        width: 400px;
+        height: 80px;
+        font-size: 15px;
+        font-family:'Courier New', Courier, monospace;
+        align-items: stretch;
+        padding-top: 2px;
+        padding-bottom: 2px;
+        background-color: #f8f8f8; /* Light background color */
+        border-radius: 10px; /* Rounded corners */
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15); /* Shadow for 3D effect */
+    }
+
+    .expense-item .top, .expense-item .bottom {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        align-items: flex-start;
+        color: #333;
+    }
+
+    .expense-item .bottom {
+        align-items: flex-end;
+    }
+
+    .expense-item .description, .expense-item .amount {
+        text-align: center;
+        white-space: nowrap;
+    }
+
+    .expense-item .middle {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: #333;
+    }
+
+    .expense-item .circle {
+        width: 5px;
+        height: 5px;
+        background-color: #333;
+        opacity: 60%;
+        border-radius: 50%;
+        margin-left: 5px;
+        margin-right: 5px;
+    }
+
+    #status-text.paid {
+        color: green;
+    }
+
+    #status-text.not-paid {
+        color: red;
+    }
+
+    #expense-add {
+        flex-direction: column;
+    }
+
+</style>
     </head>
 
     <body>
-        <div id="popup" class="hidden fixed top-0 left-0 w-full h-full flex items-center justify-center bg-black bg-opacity-50 z-50">
-            <div class="bg-white p-4 rounded">
-                <h2 class="text-2xl mb-4">Add Expense</h2>
-                <form id="expense-form">
-                    <label for="amount">Amount:</label>
-                    <input type="number" id="amount" name="amount" required>
+        <form id="expense-form" class="absolute top-0 left-0 p-8 w-full h-full bg-black bg-opacity-70 menu-ctr z-50 flex items-center justify-center">
+            <div id="overlay"></div>
+            <div class="form-content">
+                <h1 id="expense-form-title" class="text-center" style="margin-bottom: 10px;">Create Expense</h1>
+                <div class="form-grid">
+                    <div>
+                        <label for="amount">Amount:</label>
+                        <input type="number" id="amount" name="amount" step="0.01" min="0">
+            
+                        <label for="category">Category:</label>
+                        <select id="category" name="category">
+                            <option value="">Select a category</option>
+                            <option value="category1">Category 1</option>
+                            <option value="category2">Category 2</option>
+                            <!-- Add more options as needed -->
+                        </select>
+
+                        <label for="description">Description:</label>
+                        <input type="text" id="description" name="description" maxlength="20">
+                        <small class="form-text text-muted">Max 20 characters</small>
+
+                    </div>
+                    <div>
+                                    
+                        <label for="date">Date:</label>
+                        <input type="date" id="date" name="date">
+
+                        <label for="userPaid">Paid By:</label>
+                        <select id="userPaid" name="userPaid">
+                        </select>
+                        <label for="userPay">Users Owing:</label>
+                        <span id="userPay" class="checkbox-grid"></span>
         
-                    <label for="category">Category:</label>
-                    <input type="text" id="category" name="category">
-        
-                    <label for="date">Date:</label>
-                    <input type="date" id="date" name="date">
-        
-                    <label for="userPaid">User Paid:</label>
-                    <input type="text" id="userPaid" name="userPaid">
-        
-                    <!-- Add fields for usersOwe and recurring as needed -->
-        
-                    <input type="submit" value="Submit">
-                </form>
-                <button id="close-btn" class="absolute top-0 right-0 m-2 mr-96 mt-32">x</button>
+                    </div>
+                </div>
+                <div class="form-row" style="margin-top: 10px;">
+                    <label for="recurring" style="line-height: 1;">Make this a recurring expense? <br> <small class="text-muted">(From Today)</small></label>
+                    <input id="recurring" type="checkbox">
+                    <select id="recur_options" class="hidden" style="width: fit-content; margin-top: 15px;">
+                        <option value="">Select an option</option>
+                        <option value="daily">daily</option>
+                        <option value="weekly">weekly</option>
+                        <option value="bi-weekly">biweekly</option>
+                        <option value="monthly">monthly</option>
+                        <option value="annually">annually</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <label for="split">How would you like to split this expense?</label>
+                    <label id="evenly" style="margin-right: 5px;">evenly<span id="evenly-text" class="tooltip">Please enter amount</span></label>
+                    <label id="bar" style="margin-right: 5px;">|</label>
+                    <label id="custom">custom<span id="custom-text" class="tooltip"><div class="close-btn">&times;</div><br><p id="amountTotal"></p><p id="amountRemaining"></p><br></span></label>
+                </div>
+                <input type="submit" value="Submit">
+                <p id="missing-field" class="display-none color-red"></p>
             </div>
-        </div>
-        <div class="absolute top-0 left-0 right-0 h-1/2">
-            <h1 class="text-block text-4xl text-center pt-20">MOTD</h1>
-            <p class="text-block text-2xl text-center">Message of the day</p>
-        </div>
+            </div>
+
+        </form>
         <div class="absolute top-0 right-0 m-4 flex items-center">
-            <button id="add-btn" class="relative w-10 h-10 focus:outline-none mr-2 flex items-center justify-center ml-2 mt-3">
+            <button id="add-btn" class="bar relative w-10 h-10 focus:outline-none mr-2 flex items-center justify-center ml-2 mt-3 transform transition duration-300">
                 <span class="text-6xl">+</span>
             </button>
             <button id="menu-btn" class="relative w-10 h-10 focus:outline-none mr-6">
@@ -149,7 +458,7 @@
             </button>
         </div>
         <div id="app" class="grid grid-cols-3 gap-4 items-center justify-center h-screen p-4">
-            <div class="expenses flex flex-col justify-between h-1/2 rounded-xl col-span-1 row-span-2 bg-gray-200 overflow-auto">
+            <div class="expenses flex flex-col justify-between rounded-xl col-span-1 row-span-2 bg-gray-200", style="height: 500px;">
                 <div>
                     Expenses
                     <div class="arrow-container absolute top-0 right-0 mr-2">
@@ -159,8 +468,13 @@
                         <span id="month" class="mx-auto"></span>
                     </div>
                 </div>
-                <div class="text-center w-full flex-grow flex items-center justify-center mb-20">
-                    Looks a little empty...
+                <div class="form-row2" style="font-size: 15px;">
+                    <div id="all">all</div>
+                    <div id="paid">paid</div>
+                    <div id="unpaid">unpaid</div>
+                    <div id="recur">recurring</div>
+                </div>
+                <div id="expense-add" class="text-center w-full flex mb-20" style="height: 300px; overflow-y: auto; align-items: center;">
                 </div>
             </div>
             <div class="h-1/2 rounded-xl col-span-1 row-span-2 bg-gray-200 overflow-auto">Monthly Outlook</div>
@@ -197,42 +511,6 @@
                 </ul>
             </div>
         </div>
-
-        <script>
-            let app = document.getElementById('app');
-            let hour = new Date().getHours();
-
-            if (hour < 6 || hour >= 18)
-            {
-                // Night time
-                app.classList.add('dark');
-                app.classList.add('text-white');
-            } else
-            {
-                // Day time
-                app.classList.add('light');
-                app.classList.add('text-black');
-            }
-
-            let monthElement = document.getElementById('month');
-            let monthAbbreviations = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-            let currentMonth = new Date().getMonth();
-            monthElement.textContent = monthAbbreviations[currentMonth];
-
-            document.getElementById('menu-btn').addEventListener('click', function ()
-            {
-                this.classList.toggle('open');
-                let menu = document.getElementById('menu-ctr');
-                menu.classList.toggle('show');
-            });
-
-        document.getElementById('add-btn').addEventListener('click', function() {
-            document.getElementById('popup').classList.remove('hidden');
-        });
-
-        document.getElementById('close-btn').addEventListener('click', function() {
-            document.getElementById('popup').classList.add('hidden');
-        });
-    </script>
+    <script src="home.js"></script>
 </body>
 </html>

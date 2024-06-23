@@ -30,6 +30,7 @@ let loginRouter = require("./routes/login-router");
 let logoutRouter = require("./routes/logout-router");
 let groupRouter = require("./routes/group-router");
 let homeRouter = require("./routes/home-router");
+let expenseRouter = require("./routes/expense-router");
 
 mongoose.connect('mongodb://localhost:27017/Eden')
 .then(() => console.log('Connected to MongoDB'))
@@ -55,6 +56,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/home', homeRouter);
+app.use('/expense', expenseRouter);
 
 app.use((req, res, next) => {
 

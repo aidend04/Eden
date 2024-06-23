@@ -22,7 +22,12 @@ const userSchema = new Schema({
         }
     },
 
-    Group: {type: Schema.Types.ObjectId, ref: 'Group'}
+    Group: {type: Schema.Types.ObjectId, ref: 'Group'},
+    
+    MonthlyExpenses: [{
+        month: {type: String, required: true},
+        expenses: [{type: Schema.Types.ObjectId, ref: 'Expense'}]
+    }]
 });
 
 userSchema.pre('save', async function(next) {

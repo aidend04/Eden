@@ -7,15 +7,18 @@ const expenseSchema = new Schema({
         type: Number,
         required: true
     },
-
     category: {
-        type: Schema.Types.ObjectId,
-        ref: 'Category'
+        type: String,
+        required: true
+    },
+
+    description: {
+        type: String,
+        required: true
     },
 
     date: {
-        type: Date,
-        default: Date.now
+        type: String
     },
 
     userPaid: {
@@ -31,19 +34,14 @@ const expenseSchema = new Schema({
         amount: Number,
         paid: { type: Boolean, default: false }
     }],
-    recurring: {
+    recur: {
         interval: {
             type: String,
-            validate: {
-                validator: function(v) {
-                    return ['daily', 'weekly', 'monthly', 'yearly', 'custom'].includes(v);
-                },
-                message: props => `${props.value} is not a valid interval!`
-            }
         },
-        nextDueDate: Date
+        nextDueDate: String
     }
 });
+
 
 const Expense = mongoose.model('Expense', expenseSchema);
 module.exports = Expense;
