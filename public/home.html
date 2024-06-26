@@ -23,6 +23,41 @@
             color: #333;
         }
 
+        
+
+        /* Popup backdrop */
+        .popup-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent black */
+            display: none; /* Hidden by default */
+            justify-content: center;
+            align-items: center;
+            z-index: 1000; /* Ensure it's above other content */
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        /* Popup content */
+        .popup-content {
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 80%;
+            max-height: 80%;
+            z-index: 1000;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            overflow: auto; /* Enable scroll if content is large */
+            display: grid;
+            place-items: center;
+        }
+
+        
+        
         .form-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -75,13 +110,13 @@
         }
 
         #expense-form input[type="submit"] {
-        width: 100%;
-        padding: 10px;
-        border: none;
-        border-radius: 5px;
-        background-color: #007BFF;
-        color: white;
-        cursor: pointer;
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007BFF;
+            color: white;
+            cursor: pointer;
         }
 
         #expense-form input[type="submit"]:hover {
@@ -293,30 +328,31 @@
             z-index: 100; /* Make sure it's on top of everything else */
         }
 
+
         .hidden {
             position: absolute;
             left: -9999px;
         }
 
-            #recurring {
+        #recurring {
             display: flex;
             align-items: center;
             justify-content: flex-start;
         }
 
         input[type="text"], input[type="number"] {
-        width: 100%;
-        padding: 6px 20px;
-        box-sizing: border-box;
-        border: 1px solid #ccc;
-        border-radius: 4px;
+            width: 100%;
+            padding: 6px 20px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
         }
 
         .small {
             font-size: 0.8em;
             color: #888;
         }
-        .expense-item {
+    .expense-item {
         display: flex;
         flex-direction: column;
         justify-content: space-between;
@@ -382,6 +418,38 @@
         flex-direction: column;
     }
 
+    .table-fixed {
+        table-layout: fixed;
+        width: 100%; /* Adjust based on your needs */
+    }
+
+    #button-div {
+        display: flex;
+        justify-content: center; /* Centers the buttons horizontally */
+        align-items: center; /* Centers the buttons vertically */
+        flex-direction: row; /* Adjust this as needed, 'row' for horizontal, 'column' for vertical */
+        gap: 10px; /* Adds some space between buttons */
+    }
+
+    .interact-button {
+        background-color: #007BFF;
+        color: #e5e7eb;
+        border-radius: 10px;
+        padding: 5px 10px; /* Adds padding inside the buttons */
+        border: none; /* Removes the border */
+        cursor: pointer; /* Changes cursor to pointer on hover */
+        transition: background-color 0.3s ease; /* Smooth transition for hover effect */
+        font-size: 10px;
+        
+    }
+
+    .interact-button:hover {
+        background-color: #0056b3; /* Darker shade when hovered */
+    }
+    .cell-min-width {
+        max-width: fit-content; /* Adjust based on your needs */
+    }
+
 </style>
     </head>
 
@@ -398,8 +466,13 @@
                         <label for="category">Category:</label>
                         <select id="category" name="category">
                             <option value="">Select a category</option>
-                            <option value="category1">Category 1</option>
-                            <option value="category2">Category 2</option>
+                            <option value="Dining Out">Dining Out</option>
+                            <option value="Groceries">Groceries</option>
+                            <option value="Subscriptions">Subscriptions</option>
+                            <option value="Rent">Rent</option>
+                            <option value="Utilities">Utilities</option>
+                            <option value="Amazon">Amazon</option>
+                            <option value="Misc">Misc</option>
                             <!-- Add more options as needed -->
                         </select>
 
@@ -468,17 +541,20 @@
                         <span id="month" class="mx-auto"></span>
                     </div>
                 </div>
-                <div class="form-row2" style="font-size: 15px;">
-                    <div id="all">all</div>
-                    <div id="paid">paid</div>
-                    <div id="unpaid">unpaid</div>
-                    <div id="recur">recurring</div>
+                <div>
+                    <label for="select-expenseType" style="font-size: small; margin-left: 20px;">Filter by:</label>
+                    <select id="select-expenseType" style="background-color: transparent; width: fit-content;; font-size: small;">
+                        <option value="all">all</option>
+                        <option value="paid">paid</option>
+                        <option value="unpaid">unpaid</option>
+                        <option value="recurring">recurring</option>
+                    </select>
                 </div>
+
                 <div id="expense-add" class="text-center w-full flex mb-20" style="height: 300px; overflow-y: auto; align-items: center;">
                 </div>
             </div>
-            <div class="h-1/2 rounded-xl col-span-1 row-span-2 bg-gray-200 overflow-auto">Monthly Outlook</div>
-            <div class="h-1/2 rounded-xl col-span-1 row-span-2 bg-gray-200 overflow-auto">Graphs</div>
+            <div class="h-1/2 rounded-xl col-span-1 row-span-2 bg-gray-200 overflow-auto" style="height: 500px;">Graphs</div>
         </div>
 
         <div id="menu-ctr"
@@ -511,6 +587,7 @@
                 </ul>
             </div>
         </div>
+
     <script src="home.js"></script>
 </body>
 </html>

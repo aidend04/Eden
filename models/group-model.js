@@ -17,7 +17,10 @@ const groupSchema = new Schema({
     MonthlyExpenses: [{
         month: {type: String, required: true},
         expenses: [{type: Schema.Types.ObjectId, ref: 'Expense'}]
-    }]
+    }],
+
+    WhoOwe: {
+    }
 });
 
 const Group = mongoose.model('Group', groupSchema);

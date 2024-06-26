@@ -164,10 +164,11 @@ fetch('/expense/curr-expenses', {
     let expenseAdd = document.getElementById('expense-add');
     if (data.response === 'Looks a little empty...'){
         console.log('hello')
+        expenseAdd.innerHTML = '';
         expenseAdd.textContent = 'Looks a little empty...';
     } else {
         for (let expense of data){
-            let expenseDiv = createExpenseElement(expense.userOwe, expense.description, expense.category, expense.date, expense.userPaid, expense.status, expense.amount);
+            let expenseDiv = createExpenseElement(expense.userOwe, expense.description, expense.category, expense.date, expense.userPaid, expense.status, expense.amount, expense.id);
 
             all.push(expenseDiv);
 
@@ -177,13 +178,56 @@ fetch('/expense/curr-expenses', {
                 unpaid.push(expenseDiv);
             }
 
+            if (expense.recur.interval){
+                recurring.push(expenseDiv);
+            }
+
             if (expenseAdd.textContent === 'Looks a little empty...'){
                 expenseAdd.textContent = ''; // Clear the text
             }
             expenseAdd.appendChild(expenseDiv);
         }
 
-    }
+        }
+        document.getElementById('select-expenseType').addEventListener('change', function(){
+            let selector = document.getElementById('select-expenseType').value;
+            expenseAdd.innerHTML = '';
+
+            switch (selector){
+                case 'all':
+                    for (let expenseDiv of all){
+                        expenseAdd.appendChild(expenseDiv);
+                    }
+                    break;
+                case 'paid':
+                    for (let expenseDiv of paid){
+                        expenseAdd.appendChild(expenseDiv);
+                    }
+                    break;
+                case 'unpaid':
+                    for (let expenseDiv of unpaid){
+                        expenseAdd.appendChild(expenseDiv);
+                    }
+                    break;
+                case 'recurring':
+                    for (let expenseDiv of recurring){
+                        expenseAdd.appendChild(expenseDiv);
+                    }
+                    break;
+            }
+            
+        })
+
+        let expenseItems = document.querySelectorAll('.expense-item');
+        console.log(expenseItems.length)
+        // Loop through the NodeList and add an event listener to each element
+        expenseItems.forEach(function(expenseItem) {
+            console.log('double loser')
+            expenseItem.addEventListener('click', function() {
+                showPopup(this);
+
+            });
+        });
     })
     .catch(error => {
         console.log(error);
@@ -551,7 +595,7 @@ document.getElementById('evenly').addEventListener('mouseout', function() {
 
     let clickedOdd = document.getElementById('confirm-save').checked;
 
-    console.log(selectedUsers);
+    
     if (!clickedEven)
         document.getElementById('evenly').style.color = "rgb(190, 186, 186)";
 
@@ -585,9 +629,10 @@ document.getElementById('recurring').addEventListener('click', function(){
 
 console.log("Width: " + window.innerWidth + ", Height: " + window.innerHeight);
 
-function createExpenseElement(userOwe, description, category, date, userPaid, status, amount) {
+function createExpenseElement(userOwe, description, category, date, userPaid, status, amount, id) {
     let expenseElement = document.createElement('div');
     expenseElement.className = 'expense-item';
+    expenseElement.id = `expense-${id}`;
 
     let topDiv = document.createElement('div');
     topDiv.className = 'top';
@@ -651,7 +696,6 @@ function createExpenseElement(userOwe, description, category, date, userPaid, st
 function calculateDate(date, interval){
 
     date = new Date(date);
-    console.log(interval, date);
     switch (interval) {
         case 'daily':
             date.setDate(date.getDate() + 1);
@@ -674,5 +718,182 @@ function calculateDate(date, interval){
     
 }
 
+document.addEventListener('DOMContentLoaded', function() {
+    // Create the backdrop and popup elements
+    const backdrop = document.createElement('div');
+    backdrop.classList.add('popup-backdrop');
+    backdrop.id = 'backdrop-expense';
+    const popupContent = document.createElement('div');
+    popupContent.id = 'popup-expense'
+    popupContent.classList.add('popup-content');
+    backdrop.appendChild(popupContent);
+    document.body.appendChild(backdrop);
+
+    // Function to show the popup
+
+    // Close the popup when the backdrop is clicked
+    backdrop.addEventListener('click', (e) => {
+        if (e.target === backdrop) {
+            backdrop.style.display = 'none';
+        }
+    });
+
+    // Select all elements with the class 'expense-item'
+});
+
+function showPopup(content) {
+    let popupContent = document.getElementById('popup-expense');
+    let backdrop = document.getElementById('backdrop-expense');
+    let details = document.createElement('div');
+    details.id = 'detailDiv';
+    details.style.height = 'fit-content';
+    details.style.width = '400px';
+
+    let id = {id: content.id.substr(8)};
+
+    fetch('/expense/find-specific', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(id)
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log(data);
+
+        console.log(data.total);
+        if (Array.isArray(data.owe) && data.owe.length > 0) {
+            let table = document.createElement('table');
+            let headerRow = table.insertRow();
+            let headerCell = document.createElement('th'); // Create a <th> element
+            headerCell.style.paddingBottom = '10px'; // Adds 10px padding to the bottom of the header cell
+            headerCell.colSpan = 3; // Set it to span across all 3 columns
+            headerCell.textContent = 'Payment Outlook';
+            headerCell.style.textAlign = 'center'; // Center the text
+            headerRow.appendChild(headerCell); // Append the <th> to the header row
+            table.style.marginLeft = 'auto';
+            table.style.marginRight = 'auto';
+            table.style.marginTop = '10px'
 
 
+            table.className += " table-fixed";
+            table.style.fontFamily = "'Courier New', Courier, monospace";
+
+            let completed = true;
+
+            data.owe.forEach(user => {
+                let row = table.insertRow();
+                let usernameCell = row.insertCell();
+                usernameCell.className += " cell-min-width"; 
+                usernameCell.textContent = user.username;
+        
+                let amountCell = row.insertCell();
+                amountCell.className += " cell-min-width";
+                amountCell.textContent = `$${user.amount.toFixed(2)}`;
+        
+                let statusCell = row.insertCell();
+                statusCell.className += " cell-min-width"; 
+                statusCell.textContent = user.paid === true ? 'paid' : 'unpaid' ;
+                statusCell.style.color = user.paid === true ? 'green' : 'red';
+                
+                if (!user.paid) completed = false;
+
+                usernameCell.style.textAlign = 'center'; // Center the text in usernameCell
+                amountCell.style.textAlign = 'center'; // Center the text in amountCell
+                statusCell.style.textAlign = 'center'; // Center the text in statusCell
+
+                
+                usernameCell.style.paddingBottom = '5px';
+                amountCell.style.paddingBottom = '5px';
+                statusCell.style.paddingBottom = '5px';
+            });
+
+            let finalRow = table.insertRow();
+            let totalCell = finalRow.insertCell();
+            totalCell.className += " cell-min-width"; 
+            totalCell.textContent = 'Total: ';
+
+            let amountCell = finalRow.insertCell();
+            amountCell.className += " cell-min-width"; 
+            amountCell.textContent = `$${data.total.toFixed(2)}`;
+
+            let completeCell = finalRow.insertCell();
+            completeCell.className += " cell-min-width"; 
+            completeCell.textContent = completed === true ? 'complete' : 'incomplete' ;
+            completeCell.style.color = completed === true ? 'green' : 'red';
+
+            totalCell.style.textAlign = 'center';
+            amountCell.style.textAlign = 'center';
+            completeCell.style.textAlign = 'center';
+ 
+            details.appendChild(table);
+
+            let lastRow = table.rows[table.rows.length - 1];
+
+            // Apply border styling to the last cell
+            lastRow.style.border = '2px solid black';
+        }
+
+        let buttonDiv = document.createElement('div');
+        buttonDiv.style.marginTop = '10px';
+        buttonDiv.id = 'button-div';
+
+        details.appendChild(buttonDiv);
+        if (data.user === true){
+            let button = document.createElement('button');
+            button.id = `delete-${content.id.substr(8)}`;
+            button.textContent = 'DELETE';
+            buttonDiv.appendChild(button);
+            button.classList.add('interact-button'); 
+
+            console.log()
+            button.addEventListener('click', function(){
+                fetch( '/expense/delete', {
+
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({id: button.id.substring(7)})
+
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('deleted');
+                    window.location.reload();
+                })
+            })
+        }
+
+        let payButton = document.createElement('button');
+        payButton.id = `pay-${content.id}`;
+        payButton.textContent = 'PAY';
+        payButton.className = 'interact-button';
+        payButton.classList.add('interact-button');
+        buttonDiv.appendChild(payButton);
+
+        payButton.addEventListener('click', function(){
+            fetch( '/expense/pay', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({id:  payButton.id.substring(12)})
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('paid');
+                window.location.reload();
+            })
+        })
+    });
+
+    popupContent.innerHTML = ''; // Clear previous content
+    let clone = content.cloneNode(true);
+    clone.style.width = '300px';
+    clone.style.height = '250px';
+    popupContent.appendChild(clone); // Clone and append the content to the popup
+    popupContent.appendChild(details);
+    backdrop.style.display = 'flex'; // Show the backdrop (and popup)
+}

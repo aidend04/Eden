@@ -21,6 +21,10 @@ const expenseSchema = new Schema({
         type: String
     },
 
+    dateAdded: {
+        type: Date
+    },
+
     userPaid: {
         type: Schema.Types.ObjectId,
         ref: 'User'
