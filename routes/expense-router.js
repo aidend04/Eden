@@ -3,6 +3,7 @@ const router =  express.Router();
 const Expense = require('../models/expense-model');
 const User = require('../models/user-model');
 const Agenda = require('agenda');
+const Group = require('../models/group-model');
 const mongoConnectionString = 'mongodb://127.0.0.1/Eden';
 
 const agenda = new Agenda({db: {address: mongoConnectionString}});
@@ -26,6 +27,7 @@ router.post('/', async (req, res) => {
             let currUser = await User.findOne({Username: user});
             currObj.user = currUser._id;
             currObj.amount = req.body.return_prices.per_person;
+            console.log('this is currObj' + currObj.amount);
             if (userPaid._id.toString() === currUser._id.toString()){
                 currObj.paid = true;
             }
@@ -47,7 +49,7 @@ router.post('/', async (req, res) => {
     }
 
 
-
+    let grp = await Group.findOne({Name: req.session.groupId});
     for (let user of usersOwe){
         console.log(user);
         let curr = await User.findById(user.user);
@@ -62,11 +64,28 @@ router.post('/', async (req, res) => {
 
         let cats = curr.ByCat[currMonth];
 
-        if (cats && cats[cat] !== undefined) {
+        console.log("This is cats" + cats);
+
+        if (!curr._id.equals(userPaid._id)){
+            console.log('here is id' + userPaid._id);
+            console.log(grp);
+            console.log(grp.WhoOwe);
+            console.log(grp.WhoOwe[userPaid._id][curr._id] += Number(user.amount));
+            try{
+                grp.markModified('WhoOwe');
+                await grp.save();
+            } catch (error) {
+                console.error();
+            }
+
+        }
+
+        if (cats) {
             curr.ByCat[currMonth][cat] += Number(user.amount);
         } else {
             curr.ByCat[currMonth] = {
                 'Dining Out': 0,
+                'Entertainment': 0,
                 'Groceries': 0,
                 'Subscriptions': 0,
                 'Rent': 0,
@@ -155,9 +174,18 @@ router.post('/', async (req, res) => {
 
     let currMonth = months[month];
 
+    
+    let userTruthy = false;
+
+    let loggedIn = await User.findOne({Username: req.session.userId});
+
     for (let user of req.body.userPay){
     // Check if the month already exists in the user's MonthlyExpenses
+    
     let currUser = await User.findOne({Username: user});
+    if (currUser._id.equals(loggedIn._id)){
+        userTruthy = true;
+    }
     const monthExists = currUser.MonthlyExpenses.some(me => me.month === currMonth);
     
     if (monthExists) {
@@ -175,6 +203,24 @@ router.post('/', async (req, res) => {
     }
     }
 
+    if (!userTruthy){
+        const monthExists = loggedIn.MonthlyExpenses.some(me => me.month === currMonth);
+    
+    if (monthExists) {
+        // If the month already exists, add the expense to the expenses array for that month
+        await User.updateOne(
+            { _id: loggedIn._id, 'MonthlyExpenses.month': currMonth },
+            { $push: { 'MonthlyExpenses.$.expenses': expense._id } }
+        );
+    } else {
+        // If the month doesn't exist, add a new month to the MonthlyExpenses array and add the expense to the expenses array for that month
+        await User.updateOne(
+            { _id: loggedIn._id },
+            { $push: { MonthlyExpenses: { month: currMonth, expenses: [expense._id] } } }
+        );
+    }
+
+    }
 });
 
 router.post('/curr-expenses', async (req, res) => {
@@ -182,7 +228,8 @@ router.post('/curr-expenses', async (req, res) => {
     let date = new Date();
     let month = date.getMonth();
     let months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-    let currMonth = months[month];
+    let currMonth = req.body.month;
+    console.log(req.body.month);
 
 
     let currUser = await User.findOne({Username: req.session.userId}).populate('MonthlyExpenses.expenses');
@@ -194,6 +241,8 @@ router.post('/curr-expenses', async (req, res) => {
             currExpenses = currUser.MonthlyExpenses[key].expenses;
         }
     }
+
+    console.log(currExpenses);
 
 
     if (currExpenses && currExpenses.length > 0){
@@ -228,6 +277,8 @@ router.post('/curr-expenses', async (req, res) => {
            arr.push({userOwe, userPaid, date, category, description, amount, status, recur, id});
 
         }
+
+        console.log('this is arr' + arr)
         res.json(arr);
     } else {
         res.json({response: 'Looks a little empty...'});
@@ -237,45 +288,81 @@ router.post('/curr-expenses', async (req, res) => {
 });
 
 router.post('/find-specific', async (req, res) => {
-
-    let expense = await Expense.findOne({_id: req.body.id}).populate('userPaid')
-    .populate('usersOwe')
-    .populate({
-        path: 'usersOwe.user', // Specify the path to the nested documents
-    });
-    let currUser = req.session.userId;
-
-    let user = false;
-
-    if (currUser === expense.userPaid.Username){
-        user = true;
-    }
-
-    let owe = [];
-
-    let total = 0;
-
-    for (let user of expense.usersOwe){
-        
-        let username = user.user.Username;
-        let paid = user.paid;
-        let amount = user.amount;
-
-        total += amount;
-
-        let currObj = {};
-        currObj.username = username;
-        currObj.paid = paid;
-        currObj.amount = amount;
-
-        owe.push(currObj);
-    }
-
+    try {
+        let expense = await Expense.findOne({_id: req.body.id}).populate('userPaid')
+        .populate('usersOwe')
+        .populate({
+            path: 'usersOwe.user', // Specify the path to the nested documents
+        });
+        let currUser = req.session.userId;
     
+        let user = false;
+    
+        if (currUser === expense.userPaid.Username){
+            user = true;
+        }
+    
+        let owe = [];
+    
+        let total = 0;
+    
+        for (let user of expense.usersOwe){
+            
+            let username = user.user.Username;
+            let paid = user.paid;
+            let amount = user.amount;
+    
+            total += amount;
+    
+            let currObj = {};
+            currObj.username = username;
+            currObj.paid = paid;
+            currObj.amount = amount;
+    
+            owe.push(currObj);
+        }
+    
+        
+    
+        res.json({user, owe, total});
+    } catch (error) {
+        res.send('not good');
+    }
 
-    res.json({user, owe, total});
 
 })
+
+router.post('/create-table', async (req, res) => {
+    let currUser = await User.findOne({Username: req.session.userId});
+    let grp = await Group.findOne({Name: req.session.groupId});
+
+    let whoOwe = grp.WhoOwe;
+
+    let youOwe = [];
+    let theyOwe = [];
+
+    for (let user in whoOwe) {
+        console.log('this is user' + user);
+        if (currUser._id.toString() === user) {
+            for (let [key, value] of Object.entries(whoOwe[user])) {
+                let user2 = await User.findById(key);
+                theyOwe.push([user2.Username, value]);
+            }
+        } else {
+            for (let [key, value] of Object.entries(whoOwe[user])) {
+                if (currUser._id.toString() === key) {
+                    let user1 = await User.findById(user);
+                    youOwe.push([user1.Username, value]);
+                }
+            }
+        }
+    }
+
+    console.log({youOwe, theyOwe}, 'This is youOwe and theyOwe');
+
+    // Assuming you want to send this data back to the client
+    res.json({youOwe, theyOwe});
+});
 
 router.delete('/delete', async (req, res) => {
     
@@ -296,69 +383,138 @@ router.delete('/delete', async (req, res) => {
 
     let currExpenses = null
 
-    for (let element of members) {
-        await element.populate('MonthlyExpenses.expenses');
+    let grp = await Group.findOne({Name: req.session.groupId});
+        
+    let deleteExp = await Expense.findById(req.body.id).populate('userPaid');
 
-        for (let key in element.MonthlyExpenses){
+    console.log(deleteExp);
+
+    let userPaid = deleteExp.userPaid._id;
+
+    let cat = deleteExp.category;
+
+    
+    let usersOwing = deleteExp.usersOwe;
+    console.log(usersOwing);
+
+    for (let user of usersOwing){
+        
+        let curr = await User.findById(user.user);
+        for (let key in curr.MonthlyExpenses){
             
             if (currUser.MonthlyExpenses[key].month === currMonth){
                 currExpenses = currUser.MonthlyExpenses[key].expenses;
                 currKey = key;
+                break;
             }
         }
+    
         
+        let subtractionResult = curr.ByCat[currMonth][cat] - Number(user.amount);
+        console.log(`Before subtraction: ${curr.ByCat[currMonth][cat]}`);
+        curr.ByCat[currMonth][cat] = subtractionResult; // Apply the subtraction
+        console.log(`After subtraction: ${curr.ByCat[currMonth][cat]}`);
+        console.log(curr.MonthlyAvg[currMonth]);
+        curr.MonthlyAvg[currMonth] -= subtractionResult;
 
-        
-        let deleteExp = await Expense.findById(req.body.id);
-
-        console.log(deleteExp);
-
-
-
-        let cat = deleteExp.category;
-
-        
-        let usersOwing = deleteExp.usersOwe;
-        console.log(usersOwing);
-
-        for (let user of usersOwing){
-            
-            let curr = await User.findById(user.user);
-
-            curr.ByCat[currMonth][cat] -= Number(user.amount);
-            curr.MonthlyAvg[currMonth] -= Number(user.amount);
-
-            await curr.save();
-
+        if (!curr._id.equals(userPaid)){
+            grp.WhoOwe[userPaid][curr._id] -= Number(user.amount);
         }
+
+        grp.markModified('WhoOwe');
+        await grp.save();
+
+        curr.markModified(`ByCat.${currMonth}.${cat}`);
+        await curr.save();
 
         currExpenses = currExpenses.filter(expense => !expense._id.equals(req.body.id));
 
-        element.MonthlyExpenses[currKey].expenses = currExpenses;
+        curr.MonthlyExpenses[currKey].expenses = currExpenses;
         
-        await element.save(); // Save the updated element
+        await curr.save();
 
     }
 
+ // Save the updated element
+
+
     agenda.now('remove recur job', { expenseId: req.body.id });
+    // You can directly use the ID without fetching the document first
+    await Expense.findOneAndDelete({ _id: req.body.id })
+    .then(() => console.log('Expense deleted successfully'))
+    .catch(err => console.error('Error deleting expense:', err));
     res.json('done');
 });
 
 router.post('/pay', async (req, res) => {
     let expense = await Expense.findById(req.body.id).populate('usersOwe.user');
     let currUser = await User.findOne({Username: req.session.userId});
+    let grp = await Group.findOne({Name: req.session.groupId});
 
     for (let User of expense.usersOwe){
         if (User.user._id.equals(currUser._id)){
-            User.paid = true;
+
+            if (!User.paid){
+                User.paid = true;
+                console.log(grp.WhoOwe[expense.userPaid][currUser._id] -= User.amount);
+            }
+
         }
 
     }
 
+    grp.markModified('WhoOwe');
+    await grp.save();
     await expense.save();
 
     res.json('paid');
 })
+
+router.post('/get-data', async (req, res) => {
+    let currUser = await User.findOne({Username: req.session.userId});
+
+    let catData = [];
+    let monData = [];
+
+    let catDataCurr = currUser.ByCat;
+    let monDataCurr = currUser.MonthlyAvg;
+
+    let month = new Date().getMonth();
+
+    let months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+
+    let currMonth = req.body.month;
+    console.log(currMonth + 'this is currMonth')
+
+    catDataCurr = catDataCurr[currMonth];
+
+    for (let cat in catDataCurr){
+        let arr = [];
+        arr.push(cat);
+        arr.push(catDataCurr[cat]);
+        catData.push(arr);
+
+        if (cat === 'Misc'){
+            break;
+        }
+    }
+
+    console.log(monDataCurr);
+
+    for (let mon in monDataCurr){
+        let arr = [];
+        arr.push(mon);
+        arr.push(monDataCurr[mon]);
+        monData.push(arr);
+
+        if (mon === 'DEC'){
+            break;
+        }
+    }
+
+    res.json({catData: catData, monData: monData});
+
+});
 
 agenda.define('create recur'+expense._id, async job => {
     // Logic to send a reminder
@@ -374,40 +530,57 @@ agenda.define('create recur'+expense._id, async job => {
     let months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
 
     let currMonth = months[month];
-
-    for (let object of expense.usersOwe){
-        if (!object.user.equals(expense.userPaid))
-            object.paid = false;
-        
-        let curr = await User.findById(object.user);
-
-        curr.ByCat[currMonth][cat] += Number(object.amount);
-        curr.MonthlyAvg[currMonth] += Number(object.amount);
-
-        await curr.save();
-
-    }   
-
+  
     let date = new Date(expense.date);
 
+    let month1 = date.getMonth();
+    let month2 = null;
     switch (expense.recur.interval) {
         case 'daily':
             date.setDate(date.getDate() + 1);
+            month2 = date.getMonth();
             break;
         case 'weekly':
             date.setDate(date.getDate() + 7);
+            month2 = date.getMonth();
             break;
         case 'bi-weekly':
             date.setDate(date.getDate() + 14);
+            month2 = date.getMonth();
             break;
         case 'monthly':
             date.setMonth(date.getMonth() + 1);
+            month2 = date.getMonth();
             break;
         case 'annually':
             date.setYear(date.getFullYear() + 1);
+            month2 = date.getMonth();
             break;
     }
 
+    
+        for (let object of expense.usersOwe){
+            if (!object.user.equals(expense.userPaid))
+                object.paid = false;
+            
+            let curr = await User.findById(object.user);
+    
+            curr.ByCat[currMonth][cat] += Number(object.amount);
+            curr.MonthlyAvg[currMonth] += Number(object.amount);
+
+            if (month1 != month2){
+                if (curr.MonthlyExpenses.months[month2]) {
+                    // If the month already exists, add the expense to the expenses array for that month
+                    await User.updateOne(
+                        { _id: currUser._id, 'MonthlyExpenses.month': months[month2] },
+                        { $push: { 'MonthlyExpenses.$.expenses': expense._id } }
+                    );
+                } 
+            }
+
+            await curr.save();
+    
+        }   
     expense.recur.nextDueDate = date.toString();
 
     await expense.save();

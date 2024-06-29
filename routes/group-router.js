@@ -44,10 +44,12 @@ router.post('/create', async (req, res) => {
     }
 
     //creating grp
+    let id = admUser._id;
     const newGroup = new Group({
         Name: Name,
         GroupAdm: admUser._id,
-        Members: [admUser._id]
+        Members: [admUser._id],
+        WhoOwe: {id: {}}
     });
 
     try {
@@ -129,7 +131,25 @@ router.post('/join', async (req, res) => {
     }
     
     grp.Members.push(user._id);
+
     await grp.save();
+
+    grp.WhoOwe = grp.WhoOwe || {}; // Initialize WhoOwe if it doesn't exist
+
+    for (let i = 0; i < grp.Members.length; i++) {
+        const currentUserId = grp.Members[i];
+        grp.WhoOwe[currentUserId] = grp.WhoOwe[currentUserId] || {}; // Initialize current user's WhoOwe if it doesn't exist
+
+        for (let j = 0; j < grp.Members.length; j++) {
+            if (i !== j) { // Ensure not adding the user owing themselves
+                const otherUserId = grp.Members[j];
+                grp.WhoOwe[currentUserId][otherUserId] = 0; // Assign or reset the owing amount to 0
+            }
+        }
+    }
+
+    await grp.save();
+
 
     await User.updateOne({Username: userId}, {Group: grp._id});
 

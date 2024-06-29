@@ -7,6 +7,20 @@ window.addEventListener('load', function(event) {
     })
     .then(response => response.json())
     .then(data => {
+
+
+        let month = this.document.getElementById('month');
+        let months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+        let currMonth = new Date().getMonth();
+        month.value = months[currMonth];
+
+        filter();
+        google.charts.load('current', {'packages':['corechart']});
+
+        // Set a callback to run when the Google Visualization API is loaded
+        google.charts.setOnLoadCallback(drawChart);
+        
+        
         let selector = this.document.getElementById("userPaid");
 
         let customText = this.document.getElementById("custom-text");
@@ -142,96 +156,20 @@ window.addEventListener('load', function(event) {
             });
                         
         }
-
+        this.fetch('/expense/create-table', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        }).then(response => response.json())
+        .then(data => {
+            createTable(data);
+        })
+        .catch(error => console.error(error));
     })
     .catch(error => console.error('Error:', error));
 });
 
-fetch('/expense/curr-expenses', {
-    method: "POST",
-    headers: {
-        'Content-Type': 'application/json',
-    }
-})
-.then(response => response.json())
-.then(data => {
-
-    let all = [];
-    let paid = [];
-    let unpaid = [];
-    let recurring = [];
-
-    let expenseAdd = document.getElementById('expense-add');
-    if (data.response === 'Looks a little empty...'){
-        console.log('hello')
-        expenseAdd.innerHTML = '';
-        expenseAdd.textContent = 'Looks a little empty...';
-    } else {
-        for (let expense of data){
-            let expenseDiv = createExpenseElement(expense.userOwe, expense.description, expense.category, expense.date, expense.userPaid, expense.status, expense.amount, expense.id);
-
-            all.push(expenseDiv);
-
-            if (expense.status){
-                paid.push(expenseDiv);
-            } else {
-                unpaid.push(expenseDiv);
-            }
-
-            if (expense.recur.interval){
-                recurring.push(expenseDiv);
-            }
-
-            if (expenseAdd.textContent === 'Looks a little empty...'){
-                expenseAdd.textContent = ''; // Clear the text
-            }
-            expenseAdd.appendChild(expenseDiv);
-        }
-
-        }
-        document.getElementById('select-expenseType').addEventListener('change', function(){
-            let selector = document.getElementById('select-expenseType').value;
-            expenseAdd.innerHTML = '';
-
-            switch (selector){
-                case 'all':
-                    for (let expenseDiv of all){
-                        expenseAdd.appendChild(expenseDiv);
-                    }
-                    break;
-                case 'paid':
-                    for (let expenseDiv of paid){
-                        expenseAdd.appendChild(expenseDiv);
-                    }
-                    break;
-                case 'unpaid':
-                    for (let expenseDiv of unpaid){
-                        expenseAdd.appendChild(expenseDiv);
-                    }
-                    break;
-                case 'recurring':
-                    for (let expenseDiv of recurring){
-                        expenseAdd.appendChild(expenseDiv);
-                    }
-                    break;
-            }
-            
-        })
-
-        let expenseItems = document.querySelectorAll('.expense-item');
-        console.log(expenseItems.length)
-        // Loop through the NodeList and add an event listener to each element
-        expenseItems.forEach(function(expenseItem) {
-            console.log('double loser')
-            expenseItem.addEventListener('click', function() {
-                showPopup(this);
-
-            });
-        });
-    })
-    .catch(error => {
-        console.log(error);
-    });
 
 document.querySelector('form').addEventListener('submit', function(event) {
     let amount = Number(document.getElementById('amount').value);
@@ -291,7 +229,21 @@ document.querySelector('form').addEventListener('submit', function(event) {
             userPay.unshift(userPaid);
         }
         return_prices.type = "evenly";
-        per_person = ((Math.ceil(amount / userPayCheckboxes.length) * 100) / 100).toFixed(2);
+
+        let users = document.querySelectorAll('.checkbox-grid input[type="checkbox"]');
+        let selectedUsers = Array.prototype.slice.call(users).filter(x => x.checked);
+        console.log(selectedUsers + 'selected');
+        let count = selectedUsers.length + 1;
+    
+        selectedUsers.forEach(user => {
+            if (user.value == userPaid) {
+                count--;
+            }
+        });
+
+        per_person = ((Math.ceil(amount / count) * 100) / 100).toFixed(2);
+
+
         return_prices.per_person = per_person;
         if (document.getElementById('recur_options').value){
             return_prices.recur = {
@@ -345,23 +297,22 @@ if (hour < 6 || hour >= 18)
     app.classList.add('text-black');
 }
 
-let monthElement = document.getElementById('month');
-let monthAbbreviations = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-let currentMonth = new Date().getMonth();
-monthElement.textContent = monthAbbreviations[currentMonth];
 
-document.getElementById('menu-btn').addEventListener('click', function ()
-{
-    this.classList.toggle('open');
-    let menu = document.getElementById('menu-ctr');
-    menu.classList.toggle('show');
-});
+
+
 document.getElementById('add-btn').addEventListener('click', function() {
     this.classList.toggle('open-expense');
     let popup = document.getElementById('expense-form');
+    let backdrop = document.getElementById('backdrop-exp');
+    
     popup.classList.toggle('show');
     popup.reset();
     document.getElementById('missing-field').style.display = 'none';
+
+    if (backdrop.style.display === 'flex')
+        backdrop.style.display = 'none'
+    else
+        backdrop.style.display = 'flex';
 });
 
 document.getElementById('evenly').addEventListener('mouseenter', function() {
@@ -663,6 +614,9 @@ function createExpenseElement(userOwe, description, category, date, userPaid, st
 
     let amountElement = document.createElement('div');
     amountElement.className = 'amount';
+    if (amount === null)
+        amount = 0;
+
     amountElement.textContent = '$' + amount.toFixed(2);
     middleDiv.appendChild(amountElement);
 
@@ -720,6 +674,11 @@ function calculateDate(date, interval){
 
 document.addEventListener('DOMContentLoaded', function() {
     // Create the backdrop and popup elements
+    document.querySelectorAll('#expensesDiv select').forEach(selectElement => {
+        console.log(selectElement);
+        selectElement.addEventListener('change', filter);
+    });
+
     const backdrop = document.createElement('div');
     backdrop.classList.add('popup-backdrop');
     backdrop.id = 'backdrop-expense';
@@ -737,8 +696,7 @@ document.addEventListener('DOMContentLoaded', function() {
             backdrop.style.display = 'none';
         }
     });
-
-    // Select all elements with the class 'expense-item'
+ 
 });
 
 function showPopup(content) {
@@ -761,6 +719,11 @@ function showPopup(content) {
     .then(response => response.json())
     .then(data => {
         console.log(data);
+
+        if (data === 'not good'){
+            window.location.reload(true);
+            return;
+        }
 
         console.log(data.total);
         if (Array.isArray(data.owe) && data.owe.length > 0) {
@@ -855,13 +818,13 @@ function showPopup(content) {
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({id: button.id.substring(7)})
+                    body: JSON.stringify({id: button.id.substring(7), month: document.getElementById('month').value})
 
                 })
                 .then(response => response.json())
                 .then(data => {
                     console.log('deleted');
-                    window.location.reload();
+                    window.location.reload(true);
                 })
             })
         }
@@ -884,7 +847,7 @@ function showPopup(content) {
             .then(response => response.json())
             .then(data => {
                 console.log('paid');
-                window.location.reload();
+                window.location.reload(true);
             })
         })
     });
@@ -896,4 +859,360 @@ function showPopup(content) {
     popupContent.appendChild(clone); // Clone and append the content to the popup
     popupContent.appendChild(details);
     backdrop.style.display = 'flex'; // Show the backdrop (and popup)
+}
+
+// Assuming the Google Charts library is loaded
+function filter(){
+
+    fetch('/expense/curr-expenses', {
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({month: document.getElementById('month').value})
+    })
+    .then(response => response.json())
+    .then(data => {
+        
+        console.log('I have selected' + document.getElementById('month').value);
+        drawChart();
+
+        let all = [];
+        let paid = [];
+        let unpaid = [];
+        let recurring = [];
+        let diningOut = [];
+        let entertainment = [];
+        let groceries = [];
+        let subscriptions = [];
+        let rent = [];
+        let utilities = [];
+        let amazon = [];
+        let misc = [];
+    
+        let expenseAdd = document.getElementById('expense-add');
+        if (data.response === 'Looks a little empty...'){
+            console.log('hello')
+            expenseAdd.innerHTML = '';
+            expenseAdd.textContent = 'Looks a little empty...';
+        } else {
+            for (let expense of data){
+                let expenseDiv = createExpenseElement(expense.userOwe, expense.description, expense.category, expense.date, expense.userPaid, expense.status, expense.amount, expense.id);
+    
+                all.push(expenseDiv);
+    
+                if (expense.status){
+                    paid.push(expenseDiv);
+                } else {
+                    unpaid.push(expenseDiv);
+                }
+    
+                if (expense.recur.interval){
+                    recurring.push(expenseDiv);
+                }
+    
+                switch (expense.category){
+                    case 'Dining Out':
+                        diningOut.push(expenseDiv);
+                        break;
+                    case 'Entertainment':
+                        entertainment.push(expenseDiv);
+                        break;
+                    case 'Groceries':
+                        groceries.push(expenseDiv);
+                        break;
+                    case 'Subscriptions':
+                        subscriptions.push(expenseDiv);
+                        break;
+                    case 'Rent':
+                        rent.push(expenseDiv);
+                        break;
+                    case 'Utilities':
+                        utilities.push(expenseDiv);
+                        break;
+                    case 'Amazon':
+                        amazon.push(expenseDiv);
+                        break;
+                    case 'Misc':
+                        misc.push(expenseDiv);
+                        break;
+                }
+    
+                if (expenseAdd.textContent === 'Looks a little empty...'){
+                    expenseAdd.textContent = ''; // Clear the text
+                }
+
+                let selector = document.getElementById('select-expenseType').value;
+                let selector2 = document.getElementById('select-category').value;
+                expenseAdd.innerHTML = '';
+                let result;
+    
+                console.log(selector2)
+                switch (selector2){
+                    case 'all':
+                        result = all;
+                        break;
+                    case 'Dining Out':
+                        result = diningOut;
+                        break;
+                    case 'Entertainment':
+                        result = entertainment;
+                        break;
+                    case 'Groceries':
+                        result = groceries;
+                        break;
+                    case 'Subscriptions':
+                        result = subscriptions;
+                        break;
+                    case 'Rent':
+                        result = rent;
+                        break;
+                    case 'Utilities':
+                        result = utilities;
+                        break;
+                    case 'Amazon':
+                        result = amazon;
+                        break;
+                    case 'Misc':
+                        result = misc;
+                        break;
+                }
+                let overlapArray;
+                if (Array.isArray(result)) {
+                    switch (selector) {
+                        case 'all':
+                            overlapArray = all.filter(element => result.includes(element));
+                            break;
+                        case 'paid':
+                            overlapArray = paid.filter(element => result.includes(element));
+                            break;
+                        case 'unpaid':
+                            overlapArray = unpaid.filter(element => result.includes(element));
+                            break;
+                        case 'recurring':
+                            overlapArray = recurring.filter(element => result.includes(element));
+                            break;
+                        default:
+                            overlapArray = [];
+                    }
+                
+                    for (let expenseDiv of overlapArray) {
+                        expenseAdd.appendChild(expenseDiv);
+                    }
+                
+                    if (overlapArray.length === 0) {
+                        expenseAdd.textContent = 'Looks a little empty...';
+                    }
+                } else {
+                    console.error('result is not an array');
+                }
+                console.log(overlapArray);
+            }
+    
+            }
+  
+            let expenseItems = document.querySelectorAll('.expense-item');
+            console.log(expenseItems.length)
+            // Loop through the NodeList and add an event listener to each element
+            expenseItems.forEach(function(expenseItem) {
+                console.log('double loser')
+                expenseItem.addEventListener('click', function() {
+                    showPopup(this);
+    
+                });
+            });
+
+        })
+        .catch(error => {
+            console.log(error);
+        });
+}
+
+function drawChart() {
+    // Create the data table
+    let dataDis = new google.visualization.DataTable();
+    dataDis.addColumn('string', 'Category');
+    dataDis.addColumn('number', 'Money Spent ($)');
+
+    let monDataDis = new google.visualization.DataTable();
+    monDataDis.addColumn('string', 'Month');
+    monDataDis.addColumn('number', 'Money Spent ($)');
+
+    let catData = null;
+    let monData = null;
+
+    fetch('/expense/get-data', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ month: document.getElementById('month').value })
+    }).then(response => response.json())
+    .then(data => {
+        console.log(data);
+        catData = data.catData;
+        console.log(catData);
+        monData = data.monData;
+    
+        // Set chart options for pie chart (Monthly Spending by Category)
+        let options = {
+            title: 'Monthly Spending by Category',
+            width: 'fit-content',
+            pieHole: 0.4, // Donut chart effect
+            backgroundColor: '#EFEAD8', // Match background color
+            fontName: 'Georgia', // Match the font
+            titleTextStyle: {
+                color: '#3D3B2A',
+                fontSize: 18,
+                bold: true
+            },
+            legend: {
+                textStyle: {
+                    color: '#3D3B2A'
+                }
+            },
+
+            slices: {
+                0: { color: '#A5A58D' }, // Olive Green
+                1: { color: '#D9BF77' }, // Mustard Yellow
+                2: { color: '#F2CC8F' }, // Soft Coral
+                3: { color: '#778A95' }, // Slate Gray
+                4: { color: '#A8C4C9' }, // Muted Blue
+                5: { color: '#DBC3BE' }  // Pale Mauve
+            },
+            tooltip: {
+                textStyle: {
+                    color: '#3D3B2A'
+                }
+            },
+            chartArea: {
+                width: '90%',
+                height: '80%'
+            }
+        };
+
+        // Set chart options for line chart (Month by Month Spending)
+        let options2 = {
+            title: 'Month by Month Spending in ' + new Date().getFullYear(),
+            backgroundColor: '#EFEAD8', // Match background color
+            fontName: 'Georgia', // Match the font
+            titleTextStyle: {
+                color: '#3D3B2A',
+                fontSize: 18,
+                bold: true
+            },
+            hAxis: {
+                title: 'Month',
+                titleTextStyle: {
+                    color: '#3D3B2A'
+                },
+                textStyle: {
+                    color: '#3D3B2A'
+                },
+                gridlines: {
+                    color: '#CCC' // Subtle gridlines
+                }
+            },
+            vAxis: {
+                title: 'Money Spent ($)',
+                titleTextStyle: {
+                    color: '#3D3B2A'
+                },
+                textStyle: {
+                    color: '#3D3B2A'
+                },
+                gridlines: {
+                    color: '#CCC' // Subtle gridlines
+                }
+            },
+            legend: { position: 'none' },
+            series: {
+                0: {
+                    lineDashStyle: [4, 4], // Dotted line
+                    lineWidth: 2,
+                    pointShape: 'circle',
+                    pointSize: 5,
+                    color: '#6B705C'
+                }
+            },
+            trendlines: {
+                0: {
+                    color: '#CB997E',
+                    lineWidth: 2
+                }
+            },
+            chartArea: {
+                width: '85%',
+                height: '70%'
+            }
+        };
+
+        dataDis.addRows(catData);
+        monDataDis.addRows(monData);
+
+        let chart2 = new google.visualization.LineChart(document.getElementById('monthlyAvgGraph'));
+        chart2.draw(monDataDis, options2);
+    
+        let chart = new google.visualization.PieChart(document.getElementById('graph'));
+        chart.draw(dataDis, options);
+    });
+}
+
+
+
+// Function to create and populate the table
+// Function to create and populate the table
+function createTable(data) {
+    const table = document.createElement('table');
+    const thead = document.createElement('thead');
+    const tbody = document.createElement('tbody');
+    table.appendChild(thead);
+    table.appendChild(tbody);
+
+    // Manually set headers for the two sections
+    const headers = ['User', 'Amount'];
+
+    // Create headers row
+    const trHeaders = document.createElement('tr');
+    headers.forEach(header => {
+        const th = document.createElement('th');
+        th.textContent = header;
+        trHeaders.appendChild(th);
+    });
+    thead.appendChild(trHeaders);
+
+    // Function to populate rows
+    const populateRows = (data, sectionName) => {
+        // Section name row (You Owe / They Owe)
+        const trSectionName = document.createElement('tr');
+        const thSectionName = document.createElement('th');
+        thSectionName.textContent = sectionName;
+        thSectionName.colSpan = 2; // Span across both columns
+        trSectionName.appendChild(thSectionName);
+        tbody.appendChild(trSectionName);
+
+        // Populate rows with data
+        data.forEach(([user, amount]) => {
+            const tr = document.createElement('tr');
+            const tdUser = document.createElement('td');
+            tdUser.textContent = user;
+            const tdAmount = document.createElement('td');
+            tdAmount.textContent = amount;
+            tr.appendChild(tdUser);
+            tr.appendChild(tdAmount);
+            tbody.appendChild(tr);
+        });
+    };
+
+    // Assuming data is an object with youOwe and theyOwe arrays
+    if (data.youOwe.length > 0) {
+        populateRows(data.youOwe, 'You Owe');
+    }
+
+    if (data.theyOwe.length > 0) {
+        populateRows(data.theyOwe, 'They Owe');
+    }
+
+    // Append the table to a container in your HTML
+    document.getElementById('table-container').appendChild(table);
 }
