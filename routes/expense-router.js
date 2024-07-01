@@ -817,7 +817,7 @@ router.post('/invite', async (req, res) => {
         
         Please use the following code: ${newInvite._id}.
 
-        Register today at http://localhost:3000/register!`
+        Register today at https://expense-tracker-eden-61fb17e388cd.herokuapp.com/register`
     };
 
     transporter.sendMail(mailOptions, (error, info) => {
