@@ -4,7 +4,38 @@ const Expense = require('../models/expense-model');
 const User = require('../models/user-model');
 const Agenda = require('agenda');
 const Group = require('../models/group-model');
+const mongoose = require('mongoose');
 const mongoConnectionString = 'mongodb://127.0.0.1/Eden';
+require('dotenv').config();
+const path = require('path');
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+const multer = require('multer');
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage});
+const Invite = require('../models/invite-model');
+const nodemailer = require('nodemailer');
+const cookieParser = require('cookie-parser');
+
+
+require('dotenv').config();
+
+const transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    }
+});
+
+const fileSchema = new mongoose.Schema({
+    grpName: String,
+    images: [{data: Buffer, contentType: String}],
+    storeData: []
+})
+
+const File = mongoose.model('File', fileSchema);
 
 const agenda = new Agenda({db: {address: mongoConnectionString}});
 
@@ -81,8 +112,10 @@ router.post('/', async (req, res) => {
         }
 
         if (cats) {
+            console.log('cats was truthy')
             curr.ByCat[currMonth][cat] += Number(user.amount);
         } else {
+            console.log('cats was false')
             curr.ByCat[currMonth] = {
                 'Dining Out': 0,
                 'Entertainment': 0,
@@ -93,12 +126,26 @@ router.post('/', async (req, res) => {
                 'Amazon': 0,
                 'Misc': 0
             };
+
+            curr.markModified('ByCat');
+            await curr.save();
+
+            console.log(curr.ByCat[currMonth]);
+
+            
             // Now add the amount to the correct category
-            curr.ByCat[currMonth][cat] = Number(user.amount);
+            try {
+                // Now add the amount to the correct category
+                curr.ByCat[currMonth][cat] = Number(user.amount);
+                curr.markModified('ByCat');
+                await curr.save();
+            } catch (error) {
+                console.error(error);
+            }
         }
 
         curr.MonthlyAvg[currMonth] += Number(user.amount);
-
+        curr.markModified('MonthlyAvg');
         await curr.save();
 
     }
@@ -415,7 +462,7 @@ router.delete('/delete', async (req, res) => {
         curr.ByCat[currMonth][cat] = subtractionResult; // Apply the subtraction
         console.log(`After subtraction: ${curr.ByCat[currMonth][cat]}`);
         console.log(curr.MonthlyAvg[currMonth]);
-        curr.MonthlyAvg[currMonth] -= subtractionResult;
+        curr.MonthlyAvg[currMonth] -= Number(user.amount);
 
         if (!curr._id.equals(userPaid)){
             grp.WhoOwe[userPaid][curr._id] -= Number(user.amount);
@@ -425,6 +472,7 @@ router.delete('/delete', async (req, res) => {
         await grp.save();
 
         curr.markModified(`ByCat.${currMonth}.${cat}`);
+        curr.markModified('MonthlyAvg')
         await curr.save();
 
         currExpenses = currExpenses.filter(expense => !expense._id.equals(req.body.id));
@@ -470,6 +518,76 @@ router.post('/pay', async (req, res) => {
     res.json('paid');
 })
 
+router.post('/check-queue', async (req, res) => {
+    let files = await File.findOne({grpName: req.session.groupId});
+
+    if (files === null || files.storeData === null){
+        res.json({text: 'none'})
+    } else {
+        res.json({files: files.storeData});
+    } 
+});
+
+router.delete('/delete-img', async (req, res) => {
+    let files = await File.findOne({grpName: req.session.groupId});
+
+    files.storeData.shift();
+
+    files.markModified('storeData');
+    await files.save();
+
+    res.send('done');
+
+})
+router.post('/upload', upload.array('myFiles', 15), async (req, res) => {
+    let grp = await File.findOne({grpName: req.session.groupId});
+
+    let files = req.files.map(file => ({
+        data: file.buffer,
+        contentType: file.mimetype
+    }))
+
+    if (grp){
+        grp.images = files;
+        grp.markModified('images');
+        await grp.save();
+    } else {
+        grp = new File({
+            grpName: req.session.groupId,
+            images: files
+        })
+        await grp.save();
+    }
+    
+    files = grp.images;
+
+
+    const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API);
+
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+
+    let storeData = [];
+
+    for (let file of files){
+        const prompt = "Based on the image, return me the name of the store, total amount spent (dont include the $ sign), look for something in format of MM/DD/YYYY and change it to YYYY-MM-DD if not there say no date, and a category based on these: Dining Out, Entertainment, Subscriptions, Groceries, Rent, Utilities, Amazon, and Misc (no period at the end of Misc), please seperate all responses via a , and dont add extra words";
+        const image = {
+        inlineData: {
+            data: Buffer.from(file.data).toString('base64'),
+            mimeType: "image/jpg",
+        },
+        };
+    
+        const result = await model.generateContent([prompt, image]);
+        let arr = result.response.text().split(",");
+        storeData.push(arr);
+    }
+
+    grp.storeData = storeData;
+    await grp.save();
+    res.redirect('/home');
+
+});
+
 router.post('/get-data', async (req, res) => {
     let currUser = await User.findOne({Username: req.session.userId});
 
@@ -513,6 +631,59 @@ router.post('/get-data', async (req, res) => {
     }
 
     res.json({catData: catData, monData: monData});
+
+});
+
+router.post('/my-budgetChart', async (req, res) => {
+    let currUser = await User.findOne({Username: req.session.userId});
+    let currBudg = currUser.myBudget;
+    let mon = req.body.month;
+    console.log(mon);
+    let cats = currUser.ByCat[mon];
+    console.log(cats);
+
+    if (currBudg['edited'] !== false){
+        let pushArr = [];
+        for (let cat in cats){
+            let temp = [];
+            temp.push(cat);
+            temp.push(cats[cat]);
+            temp.push(currBudg[cat]);
+            pushArr.push(temp);
+            if (cat === 'Misc'){
+                break;
+            }
+        }
+
+        console.log(pushArr);
+        res.json(pushArr);
+        
+    } else {
+        res.json('not edited');
+    }
+
+})
+router.post('/create-budget', async (req, res) => {
+    let currUser = await User.findOne({Username: req.session.userId});
+    let currBudg = currUser.myBudget;
+
+    if (currBudg['edited'] === false){
+        currBudg['edited'] = true;
+    }
+
+    currBudg['Amazon'] = req.body.amazon;
+    currBudg['Entertainment'] = req.body.entertainment;
+    currBudg['Dining Out'] = req.body.diningOut;
+    currBudg['Groceries'] = req.body.groceries;
+    currBudg['Misc'] = req.body.misc;
+    currBudg['Rent'] = req.body.rent;
+    currBudg['Subscriptions'] = req.body.subscriptions;
+    currBudg['Utilities'] = req.body.utilities;
+
+    currUser.markModified['myBudget'];
+    await currUser.save();
+
+    res.json('good to go');
 
 });
 
@@ -624,6 +795,43 @@ function convert(interval){
     }
     return str;
 }
+
+router.post('/invite', async (req, res) => {
+
+    console.log('this is the invite')
+    let invitee = req.body.invitee;
+
+    let grp = await Group.findOne({Name: req.session.groupId})
+    const newInvite = new Invite({
+        group: grp._id
+    });
+
+
+    await newInvite.save();
+    
+    const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: invitee,
+        subject: 'Group Invitation',
+        text: `You have been invited to join the group ${grp.Name}. 
+        
+        Please use the following code: ${newInvite._id}.
+
+        Register today at http://localhost:3000/register!`
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            console.log(error);
+        } else {
+            console.log('Email sent: ' + info.response);
+        }
+    });
+
+
+
+res.json({message: 'Success'});
+})
 
 
 module.exports = router;

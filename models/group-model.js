@@ -20,7 +20,9 @@ const groupSchema = new Schema({
     }],
 
     WhoOwe: {
-    }
+    },
+
+    storeData: []
 });
 
 const Group = mongoose.model('Group', groupSchema);

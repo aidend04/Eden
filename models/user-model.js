@@ -22,18 +22,129 @@ const userSchema = new Schema({
         expenses: [{type: Schema.Types.ObjectId, ref: 'Expense'}]
     }],
 
-    ByCat: 
-        {
-            'JUN': {
-                'Dining Out': { type: Number, default: 0 },
-                'Groceries': { type: Number, default: 0 },
-                'Subscriptions': { type: Number, default: 0 },
-                'Rent': { type: Number, default: 0 },
-                'Utilities': { type: Number, default: 0 },
-                'Amazon': { type: Number, default: 0 },
-                'Misc': { type: Number, default: 0 }
-            }
+    ByCat: {
+        'JAN': {
+            'Dining Out': { type: Number, default: 0 },
+            'Entertainment': { type: Number, default: 0 },
+            'Groceries': { type: Number, default: 0 },
+            'Subscriptions': { type: Number, default: 0 },
+            'Rent': { type: Number, default: 0 },
+            'Utilities': { type: Number, default: 0 },
+            'Amazon': { type: Number, default: 0 },
+            'Misc': { type: Number, default: 0 }
         },
+        'FEB': {
+            'Dining Out': { type: Number, default: 0 },
+            'Entertainment': { type: Number, default: 0 },
+            'Groceries': { type: Number, default: 0 },
+            'Subscriptions': { type: Number, default: 0 },
+            'Rent': { type: Number, default: 0 },
+            'Utilities': { type: Number, default: 0 },
+            'Amazon': { type: Number, default: 0 },
+            'Misc': { type: Number, default: 0 }
+        },
+        'MAR': {
+            'Dining Out': { type: Number, default: 0 },
+            'Entertainment': { type: Number, default: 0 },
+            'Groceries': { type: Number, default: 0 },
+            'Subscriptions': { type: Number, default: 0 },
+            'Rent': { type: Number, default: 0 },
+            'Utilities': { type: Number, default: 0 },
+            'Amazon': { type: Number, default: 0 },
+            'Misc': { type: Number, default: 0 }
+        },
+        'APR': {
+            'Dining Out': { type: Number, default: 0 },
+            'Entertainment': { type: Number, default: 0 },
+            'Groceries': { type: Number, default: 0 },
+            'Subscriptions': { type: Number, default: 0 },
+            'Rent': { type: Number, default: 0 },
+            'Utilities': { type: Number, default: 0 },
+            'Amazon': { type: Number, default: 0 },
+            'Misc': { type: Number, default: 0 }
+        },
+        'MAY': {
+            'Dining Out': { type: Number, default: 0 },
+            'Entertainment': { type: Number, default: 0 },
+            'Groceries': { type: Number, default: 0 },
+            'Subscriptions': { type: Number, default: 0 },
+            'Rent': { type: Number, default: 0 },
+            'Utilities': { type: Number, default: 0 },
+            'Amazon': { type: Number, default: 0 },
+            'Misc': { type: Number, default: 0 }
+        },
+        'JUN': {
+            'Dining Out': { type: Number, default: 0 },
+            'Entertainment': { type: Number, default: 0 },
+            'Groceries': { type: Number, default: 0 },
+            'Subscriptions': { type: Number, default: 0 },
+            'Rent': { type: Number, default: 0 },
+            'Utilities': { type: Number, default: 0 },
+            'Amazon': { type: Number, default: 0 },
+            'Misc': { type: Number, default: 0 }
+        },
+        'JUL': {
+            'Dining Out': { type: Number, default: 0 },
+            'Entertainment': { type: Number, default: 0 },
+            'Groceries': { type: Number, default: 0 },
+            'Subscriptions': { type: Number, default: 0 },
+            'Rent': { type: Number, default: 0 },
+            'Utilities': { type: Number, default: 0 },
+            'Amazon': { type: Number, default: 0 },
+            'Misc': { type: Number, default: 0 }
+        },
+        'AUG': {
+            'Dining Out': { type: Number, default: 0 },
+            'Entertainment': { type: Number, default: 0 },
+            'Groceries': { type: Number, default: 0 },
+            'Subscriptions': { type: Number, default: 0 },
+            'Rent': { type: Number, default: 0 },
+            'Utilities': { type: Number, default: 0 },
+            'Amazon': { type: Number, default: 0 },
+            'Misc': { type: Number, default: 0 }
+        },
+        'SEP': {
+            'Dining Out': { type: Number, default: 0 },
+            'Entertainment': { type: Number, default: 0 },
+            'Groceries': { type: Number, default: 0 },
+            'Subscriptions': { type: Number, default: 0 },
+            'Rent': { type: Number, default: 0 },
+            'Utilities': { type: Number, default: 0 },
+            'Amazon': { type: Number, default: 0 },
+            'Misc': { type: Number, default: 0 }
+        },
+        'OCT': {
+            'Dining Out': { type: Number, default: 0 },
+            'Entertainment': { type: Number, default: 0 },
+            'Groceries': { type: Number, default: 0 },
+            'Subscriptions': { type: Number, default: 0 },
+            'Rent': { type: Number, default: 0 },
+            'Utilities': { type: Number, default: 0 },
+            'Amazon': { type: Number, default: 0 },
+            'Misc': { type: Number, default: 0 }
+        },
+        'NOV': {
+            'Dining Out': { type: Number, default: 0 },
+            'Entertainment': { type: Number, default: 0 },
+            'Groceries': { type: Number, default: 0 },
+            'Subscriptions': { type: Number, default: 0 },
+            'Rent': { type: Number, default: 0 },
+            'Utilities': { type: Number, default: 0 },
+            'Amazon': { type: Number, default: 0 },
+            'Misc': { type: Number, default: 0 }
+        },
+        'DEC': {
+            'Dining Out': { type: Number, default: 0 },
+            'Entertainment': { type: Number, default: 0 },
+            'Groceries': { type: Number, default: 0 },
+            'Subscriptions': { type: Number, default: 0 },
+            'Rent': { type: Number, default: 0 },
+            'Utilities': { type: Number, default: 0 },
+            'Amazon': { type: Number, default: 0 },
+            'Misc': { type: Number, default: 0 }
+        }
+    },
+    
     
         MonthlyAvg: {
             JAN: { type: Number, default: 0 },
@@ -48,6 +159,18 @@ const userSchema = new Schema({
             OCT: { type: Number, default: 0 },
             NOV: { type: Number, default: 0 },
             DEC: { type: Number, default: 0 }
+        },
+
+        myBudget: {
+            'edited': {type: Boolean, default: false},
+            'Dining Out': { type: Number, default: 0 },
+            'Entertainment': { type: Number, default: 0 },
+            'Groceries': { type: Number, default: 0 },
+            'Subscriptions': { type: Number, default: 0 },
+            'Rent': { type: Number, default: 0 },
+            'Utilities': { type: Number, default: 0 },
+            'Amazon': { type: Number, default: 0 },
+            'Misc': { type: Number, default: 0 }
         }
 });
 

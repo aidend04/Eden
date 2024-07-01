@@ -96,6 +96,43 @@ router.post('/create', async (req, res) => {
     res.json({message: 'Success'});
 });
 
+router.post('/invite', async (req, res) => {
+
+        console.log('this is the invite')
+        let invitee = req.body.invitee;
+
+        let grp = Group.findOne({Name: req.session.groupId})
+        const newInvite = new Invite({
+            group: grp._id
+        });
+    
+
+        await newInvite.save();
+        
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: invitee,
+            subject: 'Group Invitation',
+            text: `You have been invited to join the group ${Name}. 
+            
+            Please use the following code: ${newInvite._id}.
+
+            Register today at http://localhost:3000/register!`
+        };
+
+        transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+                console.log(error);
+            } else {
+                console.log('Email sent: ' + info.response);
+            }
+        });
+
+    
+
+    res.json({message: 'Success'});
+})
+
 router.post('/join', async (req, res) => {
     const { code } = req.body;
     const userId = req.session.userId;

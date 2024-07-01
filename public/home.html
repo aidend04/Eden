@@ -4,12 +4,13 @@
 <head>
     <!-- Add Tailwind CSS -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="styles/home.css">
+    <link rel="stylesheet" href="styles/home-day.css">
+    
 </head>
 
 <body>
     <div class="flex relative justify-between items-center mx-1 sm:mx-1 md:mx-2 lg:mx-3 xl:mx-4 2xl:mx-5">
-        <h1 class="text-sm sm:text-sm md:text-base lg:text-lg xl:text-xl 2xl:text-2xl truncate">Welcome to your Eden:</h1>
+        <h1 class="text-sm sm:text-sm md:text-base lg:text-lg xl:text-xl 2xl:text-2xl truncate">Welcome to your Eden,</h1>
         <button id="add-btn" class="relative w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 lg:w-12 lg:h-12 focus:outline-none flex items-center justify-center transition duration-300">
             <span class="text-3xl sm:text-3xl md:text-4xl lg:text-5xl">+</span>
         </button>
@@ -71,19 +72,16 @@
                     <label id="custom">custom<span id="custom-text" class="tooltip"><div class="close-btn">&times;</div><br><p id="amountTotal"></p><p id="amountRemaining"></p><br></span></label>
                 </div>
                 <input type="submit" value="Submit" class="mt-4">
-                <p id="missing-field" class="hidden text-red-500 mt-2"></p>
+                <p id="missing-field" class="text-red-500 mt-2"></p>
             </div>
         </form>
     </div>
 
 
-    <div id="expensesDiv" class="expenses flex flex-col justify-between rounded-xl col-span-1 bg-gray-200 p-4 relative h-auto mb-4">
+    <div id="expensesDiv" class="expenses flex flex-col justify-between rounded-xl col-span-1 bg-gray-200 p-4 relative h-auto mb-4" style="padding: 20px; background-color: #EFEAD8; border: 1px solid #CCC; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
         <div>
             <div class="flex justify-between items-center">
                 <h2>Expenses</h2>
-                <div class="arrow-container">
-                    <div class="arrow">&gt;</div>
-                </div>
             </div>
             <div class="month-text text-center w-full mt-4">
                 <select id="month" class="mx-auto">
@@ -123,28 +121,95 @@
                 <option value="Misc">Misc</option>
             </select>
         </div>
-        <div id="expense-add" class="text-center w-full flex mb-4 overflow-y-auto" style="align-items: center;">
+        <div id="expense-add" class="text-center w-full flex mb-4 overflow-y-auto" style="align-items: center; width: 415px;">
         </div>
     </div>
     
-    <div id="app" class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <div id="app" class="grid grid-cols-1 lg:grid-cols- gap-4">
         <div class="flex flex-col space-y-4">
-            <div id="graph" class="rounded-xl p-4" style="background-color: #EAE7DC;">
+            <div id="graph" class="rounded-xl p-4" style="padding: 20px; background-color: #EFEAD8; border: 1px solid #CCC; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
                 <!-- Placeholder for the graph -->
             </div>
-            <div id="monthlyAvgGraph" class="rounded-xl p-4" style="background-color: #EAE7DC;">
+            <div id="monthlyAvgGraph" class="rounded-xl p-4" style="padding: 20px; background-color: #EFEAD8; border: 1px solid #CCC; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
                 <!-- Placeholder for the monthly average graph -->
             </div>
         </div>
-        <div id="table-container" class="rounded-xl p-4" style="background-color: #EAE7DC;">
-            <!-- Placeholder for the table -->
+        <div class="flex flex-col space-y-4">
+            <div id="table-container" class="rounded-xl p-4" style="padding: 20px; background-color: #EFEAD8; border: 1px solid #CCC; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+                <!-- Placeholder for the table -->
+            </div>
+            <div id="expenseUpload" style="padding: 20px; background-color: #EFEAD8; border: 1px solid #CCC; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+                <h1 style="color: #3D3B2A; font-weight: bold; font-size: large;">Upload Expenses</h1>
+                <form action="/expense/upload"  method="post" enctype="multipart/form-data">
+                    <input type="file" name="myFiles" id="fileInput" accept=".csv, .pdf, .jpg, .jpeg, .png" multiple style="margin-top: 10px;"/>
+                    <button id="uploadExpenseBtn" style="background-color: #6B705C; color: #FFF; padding: 10px 20px; border: none; border-radius: 5px; margin-top: 10px;">Upload</button>
+                </form>
+            </div>
         </div>
-        <div id="expenseUpload" style="padding: 20px; background-color: #EFEAD8; border: 1px solid #CCC; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); font-family: 'Georgia', serif;">
-            <h2 style="color: #3D3B2A;">Upload Expenses</h2>
-            <input type="file" id="upload" accept=".csv, .pdf, .jpg, .jpeg, .png" style="margin-top: 10px;"/>
-            <button style="background-color: #6B705C; color: #FFF; padding: 10px 20px; border: none; border-radius: 5px; margin-top: 10px;">Upload</button>
-            <div style="color: #3D3B2A; margin-top: 15px;">Supported formats: .csv, .pdf, .jpg, .jpeg, .png</div>
+
+    
+        <div class="flex flex-col space-y-4">
+            <div id="myBudget" style="padding: 20px; background-color: #EFEAD8; border: 1px solid #CCC; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+                <div class="flex justify-between"><h1 style="color: #3D3B2A; font-weight: bold; font-size: large;">MyBudget</h1>
+                    <button id="create-budg">create</button></div>
+                    <div id="budgContent" style="height: 220px; width: 100%;">Please create your budget...</div>
+                    <div id="cre-back" class="popup-backdrop">
+                        <div id="edit-details" class="stylish-container">
+                            <h2>Expense Categories</h2>
+                            <div id='form-group' class="form-group">
+                                <label for="dining-out">Dining Out:</label>
+                                <input type="number" id="dining-out" name="dining-out" value="0" data-prev-value="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="entertainment">Entertainment:</label>
+                                <input type="number" id="entertainment" name="entertainment" value="0" data-prev-value="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="groceries">Groceries:</label>
+                                <input type="number" id="groceries" name="groceries" value="0" data-prev-value="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="subscriptions">Subscriptions:</label>
+                                <input type="number" id="subscriptions" name="subscriptions" value="0" data-prev-value="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="rent">Rent:</label>
+                                <input type="number" id="rent" name="rent" value="0" data-prev-value="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="utilities">Utilities:</label>
+                                <input type="number" id="utilities" name="utilities" value="0" data-prev-value="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="amazon">Amazon:</label>
+                                <input type="number" id="amazon" name="amazon" value="0" data-prev-value="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="misc">Misc:</label>
+                                <input type="number" id="misc" name="misc" value="0" data-prev-value="0">
+                            </div>
+                            <div class="total-container">
+                                <hr>
+                                <label id="totalBudg">Total: $0.00</label>
+                            </div>
+                        </div>
+                    </div>
+            </div>
+
+            <div id="myAccount" style="padding: 20px; background-color: #EFEAD8; border: 1px solid #CCC; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+                <div class="flex justify-between"><h1 style="color: #3D3B2A; font-weight: bold; font-size: large;">myAccount</h1>
+                    <button id="logout">logout</button></div>
+                    <div id="inviteDiv" style="padding: 10px;">
+
+                        <h2 style="color: #3D3B2A; font-weight: bold; font-size: large;">myInvite</h2> 
+                        <input id="invite" type="text" placeholder="Please enter invitee email" style="width: 300px; margin-top: 2px;">
+                        <button id="inviteBtn" style="background-color: #6B705C; color: #FFF; padding: 5px 20px; border: none; border-radius: 5px; margin-top: 10px;">send</button>
+                    </div>
+                    
+            </div>
         </div>
+      
+
         
     </div>
     

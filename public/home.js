@@ -1,3 +1,6 @@
+let chartMyBudg;
+let dataTableMyBudg;
+
 window.addEventListener('load', function(event) {
     fetch('/home', {
         method: "PUT",
@@ -8,17 +11,112 @@ window.addEventListener('load', function(event) {
     .then(response => response.json())
     .then(data => {
 
+        this.fetch('/expense/check-queue', {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        }).then(response => response.json())
+        .then(data => {
+            if (!data.text){
+                console.log(data.files);
 
+                let description = data.files[0][0].trim();
+                let amount = Number(data.files[0][1].trim());
+                let date = null;
+                if (data.files[0][2] !== ' No date'){
+                    date = (data.files[0][2].trim())
+                }
+                let category = data.files[0][3].trim();
+
+                console.log(category);
+
+                let btn = this.document.getElementById('add-btn');
+                btn.classList.toggle('open-expense');
+                let popup = document.getElementById('expense-form');
+                let backdrop = document.getElementById('backdrop-exp');
+
+                btn.addEventListener('click', function(){
+                    window.location.reload();
+                })
+                
+                popup.classList.toggle('show');
+    
+            
+                backdrop.style.display = 'flex';
+                // Assuming amount, category, date, and description are the new values you want to set.
+                document.getElementById('amount').value = amount; // Convert amount to a number if necessary
+                document.getElementById('category').value = category;
+                if (date !== null) {
+                    document.getElementById('date').value = date;
+                }
+                document.getElementById("description").value = description;
+
+                this.fetch('/expense/delete-img', {
+                    method: 'delete',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+
+            } if (data.text){
+                let btn = this.document.getElementById('add-btn');
+                btn.addEventListener('click', function(){
+                    window.location.reload();
+                })
+            }
+                
+        })
         let month = this.document.getElementById('month');
         let months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
         let currMonth = new Date().getMonth();
         month.value = months[currMonth];
 
-        filter();
-        google.charts.load('current', {'packages':['corechart']});
+        (async () => {
+            await filter();
+            await google.charts.load('current', {'packages':['corechart']});
 
-        // Set a callback to run when the Google Visualization API is loaded
-        google.charts.setOnLoadCallback(drawChart);
+            // Set a callback to run when the Google Visualization API is loaded
+            await google.charts.setOnLoadCallback(drawChart);
+            let total = 0;
+            fetch('/expense/my-budgetChart', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: 
+                    JSON.stringify({month: document.getElementById('month').value})
+                
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data !== 'not edited'){
+                    this.document.getElementById('budgContent').textContent = '';
+                    this.document.getElementById('create-budg').textContent = 'edit';
+                    drawChart('draw please');
+                    console.log('This is my data: ' + data)
+                    data.forEach(element => {
+                        let cat = element[0];
+                        cat = callSwitch(cat);
+                        console.log(cat);
+                        document.getElementById(cat).value = Number(element[2]);
+                        total += element[2]
+                        updateChart(cat, Number(element[1]), Number(element[2]))
+                        
+                    })
+                    
+                document.getElementById('totalBudg').textContent = `Total: $${total.toFixed(2)}`
+                } else {
+                    console.log('edited');
+                }
+            })
+            .catch(error => {
+                console.log(error)
+            })
+        })();
+        
+        
+
         
         
         let selector = this.document.getElementById("userPaid");
@@ -171,6 +269,7 @@ window.addEventListener('load', function(event) {
 });
 
 
+
 document.querySelector('form').addEventListener('submit', function(event) {
     let amount = Number(document.getElementById('amount').value);
     let category = document.getElementById('category').value;
@@ -281,24 +380,6 @@ document.querySelector('form').addEventListener('submit', function(event) {
         console.log(error);
     })
 });
-
-let app = document.getElementById('app');
-let hour = new Date().getHours();
-
-if (hour < 6 || hour >= 18)
-{
-    // Night time
-    app.classList.add('dark');
-    app.classList.add('text-white');
-} else
-{
-    // Day time
-    app.classList.add('light');
-    app.classList.add('text-black');
-}
-
-
-
 
 document.getElementById('add-btn').addEventListener('click', function() {
     this.classList.toggle('open-expense');
@@ -862,7 +943,7 @@ function showPopup(content) {
 }
 
 // Assuming the Google Charts library is loaded
-function filter(){
+async function filter(){
 
     fetch('/expense/curr-expenses', {
         method: "POST",
@@ -1028,7 +1109,33 @@ function filter(){
         });
 }
 
-function drawChart() {
+window.addEventListener('resize', function(event) {
+    // Your code to run when the viewport size changes
+    console.log('Viewport size has changed!');
+    // For example, logging the new viewport size
+    console.log('Width: ' + window.innerWidth + ', Height: ' + window.innerHeight);
+    drawChart();
+    drawChartMyBudg();
+
+});
+
+function drawChart(text='null') {
+
+    if (text !== 'null'){
+        dataTableMyBudg = new google.visualization.DataTable();
+        dataTableMyBudg.addColumn('string', 'Category');
+        dataTableMyBudg.addColumn('number', 'Below Allowed');
+        dataTableMyBudg.addColumn({type: 'string', role: 'style'});
+        dataTableMyBudg.addColumn('number', 'Above Allowed');
+        dataTableMyBudg.addColumn({type: 'string', role: 'style'});
+        dataTableMyBudg.addColumn('number', 'Remaining Allowed');
+        dataTableMyBudg.addColumn({type: 'string', role: 'style'});
+    
+        chartMyBudg = new google.visualization.ColumnChart(document.getElementById('budgContent'));
+    
+        // Initial empty draw to set up the chart
+        drawChartMyBudg();
+    }
     // Create the data table
     let dataDis = new google.visualization.DataTable();
     dataDis.addColumn('string', 'Category');
@@ -1057,7 +1164,8 @@ function drawChart() {
         // Set chart options for pie chart (Monthly Spending by Category)
         let options = {
             title: 'Monthly Spending by Category',
-            width: 'fit-content',
+            width: 'max-width',
+            height: 'max-height',
             pieHole: 0.4, // Donut chart effect
             backgroundColor: '#EFEAD8', // Match background color
             fontName: 'Georgia', // Match the font
@@ -1216,3 +1324,240 @@ function createTable(data) {
     // Append the table to a container in your HTML
     document.getElementById('table-container').appendChild(table);
 }
+
+document.getElementById('create-budg').addEventListener('click', function(){
+    let backdrop = document.getElementById('cre-back');
+    backdrop.style.display = 'flex';
+    let div = document.getElementById('edit-details');
+    div.classList.remove('hidden');
+    backdrop.addEventListener('click', (e) => {
+        let diningOut = Number(document.getElementById('dining-out').value);
+        let entertainment = Number(document.getElementById('entertainment').value);
+        let groceries = Number(document.getElementById('groceries').value);
+        let subscriptions = Number(document.getElementById('subscriptions').value);
+        let rent = Number(document.getElementById('rent').value);
+        let utilities = Number(document.getElementById('utilities').value);
+        let amazon = Number(document.getElementById('amazon').value);
+        let misc = Number(document.getElementById('misc').value);
+        let month = document.getElementById('month').value;
+
+        if (e.target === backdrop) {
+            backdrop.style.display = 'none';
+            fetch('/expense/create-budget', {
+                method: 'POST',
+                headers: {
+                    "Content-Type": 'application/json'
+                },
+                body: JSON.stringify({diningOut: diningOut, groceries: groceries, subscriptions: subscriptions, rent: rent, utilities: utilities,
+                    amazon: amazon, misc: misc, entertainment: entertainment, month: month
+                })
+                
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('this is data' + data);
+                let total = 0;
+                if (data === 'good to go'){
+                    fetch('/expense/my-budgetChart', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: 
+                            JSON.stringify({month: document.getElementById('month').value})
+                        
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data !== 'not edited'){
+                            drawChart('draw please');
+                            console.log('This is my data 1.0: ' + data)
+                            data.forEach(element => {
+                                let cat = element[0];
+                                cat = callSwitch(cat);
+                                console.log(cat);
+                                document.getElementById(cat).value = Number(element[2]);
+                                total += element[2]
+                                updateChart(cat, Number(element[1]), Number(element[2]))
+                                
+                            })
+                            
+                        document.getElementById('totalBudg').textContent = `Total: $${total.toFixed(2)}`
+                        }
+                    })
+                    .catch(error => {
+                        console.log(error)
+                    })
+                }
+
+            })
+            .catch(error => {
+                console.error('error');
+            })
+        }
+    });
+})
+
+let previousValues2 = new Map();
+document.querySelectorAll('.form-group input').forEach(input => {
+
+        previousValues2.set(input, Number(input.value));
+        console.log(previousValues2)
+
+    input.addEventListener('input', (event) => {
+        let newValue = Number(input.value);
+        let previousValue = previousValues2.get(input);
+
+        console.log(previousValue)
+        console.log(newValue);
+
+        //0 1 = 1 - 1 = 0
+
+        let amountRemaining = Number(document.getElementById('totalBudg').textContent.substring(8))
+
+        console.log('This is amtRema' + amountRemaining)
+        // Subtract the previous value of the input field from amountRemaining
+        
+        amountRemaining -= previousValue;
+
+        // Add the new value of the input field to amountRemaining
+        amountRemaining += newValue;
+
+    
+
+        // Update the total displayed
+        document.getElementById('totalBudg').textContent = `Total: $${amountRemaining.toFixed(2)}`;
+
+        previousValues2.set(input, newValue);
+        document.getElementById('create-budg').textContent = 'edit';
+        document.getElementById('budgContent').textContent = '';
+    });
+});
+
+function callSwitch(cat){
+    switch (cat) {
+        case 'Amazon':
+            return 'amazon';
+        case 'Dining Out':
+            return 'dining-out';
+        case 'Groceries':
+            return 'groceries';
+        case 'Entertainment':
+            return 'entertainment';
+        case 'Subscriptions':
+            return 'subscriptions';
+        case 'Misc':
+            return 'misc';
+        case 'Rent':
+            return 'rent';
+        case 'Utilities':
+            return 'utilities';
+    }
+}
+
+
+
+function drawChartMyBudg() {
+    const options = {
+        title: 'Monthly Category Budget',
+        backgroundColor: '#EFEAD8', // Match background color
+        width: 'max-width',
+        height: 'max-height',
+        fontName: 'Georgia',
+        hAxis: {
+            title: 'Categories',
+            minValue: 0,
+        },
+        vAxis: {
+            title: 'Amount',
+        },
+        bar: { groupWidth: '75%' },
+        legend: { position: 'none' },
+        isStacked: true
+    };
+
+    chartMyBudg.draw(dataTableMyBudg, options);
+}
+
+function updateChart(category, currentUsed, totalAllowed) {
+    const belowAllowed = currentUsed <= totalAllowed ? currentUsed : totalAllowed;
+    const aboveAllowed = currentUsed > totalAllowed ? currentUsed - totalAllowed : 0;
+    const remainingAllowed = totalAllowed - currentUsed >= 0 ? totalAllowed - currentUsed : 0;
+
+    dataTableMyBudg.addRow([
+        category,
+        belowAllowed,
+        'color: lightblue', // Style for below allowed amount
+        aboveAllowed,
+        aboveAllowed > 0 ? 'color: red' : 'color: transparent', // Style for above allowed amount
+        remainingAllowed,
+        'color: lightgrey' // Style for remaining allowed amount
+    ]);
+
+    drawChartMyBudg();
+}
+
+let selectElem = document.querySelector('#month');
+
+selectElem.addEventListener('change', function(event) {
+    let total = 0;
+    fetch('/expense/my-budgetChart', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: 
+            JSON.stringify({month: document.getElementById('month').value})
+        
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data !== 'not edited'){
+            document.getElementById('budgContent').textContent = '';
+            document.getElementById('create-budg').textContent = 'edit';
+            drawChart('draw please');
+            console.log('This is my data: ' + data)
+            data.forEach(element => {
+                let cat = element[0];
+                cat = callSwitch(cat);
+                console.log(cat);
+                document.getElementById(cat).value = Number(element[2]);
+                total += element[2]
+                updateChart(cat, Number(element[1]), Number(element[2]))
+                
+            })
+            
+        document.getElementById('totalBudg').textContent = `Total: $${total.toFixed(2)}`
+        } else {
+            console.log('edited');
+        }
+    })
+    .catch(error => {
+        console.log(error)
+    })
+})
+
+document.getElementById('logout').addEventListener('click', function(){
+    fetch('/logout', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/header'
+        }
+    }).then(response => response.json())
+    .then(data => {
+        window.location.href = 'http://localhost:3000/login'
+    })
+})
+
+document.getElementById('inviteBtn').addEventListener('click', function(){
+    fetch('/expense/invite', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({invitee: document.getElementById('invite').value})
+    }).then(response => response.json())
+    .then(data => {
+        window.location.reload();
+    })
+})
