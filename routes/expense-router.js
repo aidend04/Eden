@@ -5,7 +5,7 @@ const User = require('../models/user-model');
 const Agenda = require('agenda');
 const Group = require('../models/group-model');
 const mongoose = require('mongoose');
-const mongoConnectionString = 'mongodb://127.0.0.1/Eden';
+const mongoConnectionString = process.env.MONGODB_URI;
 require('dotenv').config();
 const path = require('path');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
