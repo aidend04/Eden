@@ -1545,7 +1545,7 @@ document.getElementById('logout').addEventListener('click', function(){
         }
     }).then(response => response.json())
     .then(data => {
-        window.location.href = 'http://localhost:3000/login'
+        window.location.href = ' https://expense-tracker-eden-61fb17e388cd.herokuapp.com/login'
     })
 })
 
