@@ -584,6 +584,10 @@ input[type="text"], input[type="number"] {
     max-width: fit-content;
 }
 
+@media (max-width: 800px) {
+
+    
+}
 @media (max-width: 1200px) {
     #app {
         display: flex; /* Enable Flexbox */
@@ -634,6 +638,26 @@ input[type="text"], input[type="number"] {
 }
 
 @media (max-width: 768px) {
+    #table-container, #expenseUpload     {
+        height: 600px; /* Full height minus the padding and spacing */
+    }
+    
+    #graph, #monthlyAvgGraph {
+        height: 600px; /* Half of the view height minus the padding */
+    }
+
+    #myBudget {
+        height: 600px;
+    }
+
+    #myAccount {
+        height: 600px;
+    }
+
+    #expensesDiv {
+
+    }
+
     .expenses {
         flex-direction: column;
         font-size: 1.25em;
@@ -654,17 +678,6 @@ input[type="text"], input[type="number"] {
         height: auto;
         min-height: 15rem;
     }
-
-    .close-btn {
-        height: 1.5rem;
-        width: 1.5rem;
-        line-height: 1.5rem;
-    }
-
-    .interact-button {
-        font-size: 0.75rem;
-        padding: 0.5rem 1rem;
-    }
     
 }
 
@@ -677,25 +690,6 @@ input[type="text"], input[type="number"] {
     color: #3D3B2A;
 }
 
-@media (max-width: 480px) {
-    .expenses {
-        font-size: 1em;
-    }
-
-    .form-content {
-        padding: 0.75rem;
-    }
-
-    .expense-item {
-        padding: 0.5rem;
-        font-size: 0.75rem;
-    }
-
-    .interact-button {
-        font-size: 0.625rem;
-        padding: 0.25rem 0.5rem;
-    }
-}
 
 /* General table styling */
 table {
