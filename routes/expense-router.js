@@ -576,7 +576,7 @@ router.post('/upload', upload.array('myFiles', 15), async (req, res) => {
         const image = {
         inlineData: {
             data: Buffer.from(file.data).toString('base64'),
-            mimeType: mimeType,
+            mimeType: 'application/pdf',
         },
         };
     
