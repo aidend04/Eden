@@ -579,8 +579,7 @@ router.post('/upload', upload.array('myFiles', 15), async (req, res) => {
             const prompt = "Based on the image or text, return me the name of the store, total amount spent (don't include the $ sign), look for something in format of MM/DD/YYYY and change it to YYYY-MM-DD if not there say no date, and a category based on these: Dining Out, Entertainment, Subscriptions, Groceries, Rent, Utilities, Amazon, and Misc (no period at the end of Misc), please separate all responses via a comma and don't add extra words.";
             const image = {
                 inlineData: {
-                    data: file.data.toString('base64'),
-                    mimeType: 'image/jpg'
+                    data: Buffer.from(file.data).toString('base64')
                 },
             };
 
