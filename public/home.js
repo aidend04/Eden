@@ -61,7 +61,7 @@ window.addEventListener('load', function(event) {
 
             } if (data.text){
                 let btn = this.document.getElementById('add-btn');
-                btn.addEventListener('click', function(){
+                btn.removeEventListener('click', function(){
                     window.location.reload();
                 })
             }
