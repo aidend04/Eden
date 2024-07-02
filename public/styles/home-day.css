@@ -650,6 +650,7 @@ input[type="text"], input[type="number"] {
     .expenses {
         flex-direction: column;
         font-size: 1.25em; /* You might want to adjust this as well */
+        width: fit-content;
     }
     
 
