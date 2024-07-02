@@ -638,29 +638,19 @@ input[type="text"], input[type="number"] {
 }
 
 @media (max-width: 768px) {
-    #table-container, #expenseUpload     {
-        height: 600px; /* Full height minus the padding and spacing */
-    }
-    
-    #graph, #monthlyAvgGraph {
-        height: 600px; /* Half of the view height minus the padding */
-    }
-
-    #myBudget {
-        height: 600px;
-    }
-
-    #myAccount {
-        height: 600px;
+    #table-container, #expenseUpload, #graph, #monthlyAvgGraph, #myBudget, #expensesDiv {
+        width: 90vw; /* Adjust the width to make it more blocky */
+        height: 90vw; /* Adjust the height to match the width, making it square */
     }
 
     #expensesDiv {
-
+        font-size: 1.5em; /* Increase font size for better readability */
     }
 
     .expenses {
         flex-direction: column;
-        font-size: 1.25em;
+        font-size: 1.25em; /* You might want to adjust this as well */
+    }
     }
 
     .form-content {
@@ -677,6 +667,17 @@ input[type="text"], input[type="number"] {
         width: 90%;
         height: auto;
         min-height: 15rem;
+    }
+
+    .close-btn {
+        height: 1.5rem;
+        width: 1.5rem;
+        line-height: 1.5rem;
+    }
+
+    .interact-button {
+        font-size: 0.75rem;
+        padding: 0.5rem 1rem;
     }
     
 }
