@@ -15,7 +15,6 @@ const upload = multer({ storage: storage});
 const Invite = require('../models/invite-model');
 const nodemailer = require('nodemailer');
 const cookieParser = require('cookie-parser');
-const pdfPoppler = require('pdf-poppler');
 const fileType = require('file-type');
 
 
