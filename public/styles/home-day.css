@@ -635,7 +635,7 @@ input[type="text"], input[type="number"] {
 
 @media (max-width: 768px) {
 
-    #table-container, #graph, #monthlyAvgGraph {
+    #graph, #monthlyAvgGraph {
         width: 100%; /* Adjust the width to make it more blocky */
         height: 450px; /* Adjust the height to match the width, making it square */
         display: flex;
