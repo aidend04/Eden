@@ -19,7 +19,7 @@ const pdfPoppler = require('pdf-poppler');
 const fs = require('fs').promises;
 
 
-require('dotenv').config();
+require('dotenv').config(); 
 
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
