@@ -141,8 +141,9 @@
             <div id="expenseUpload" style="padding: 20px; background-color: #EFEAD8; border: 1px solid #CCC; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
                 <h1 style="color: #3D3B2A; font-weight: bold; font-size: large;">Upload Expenses</h1>
                 <form action="/expense/upload"  method="post" enctype="multipart/form-data">
-                    <input type="file" name="myFiles" id="fileInput" accept=".csv, .pdf, .jpg, .jpeg, .png .pdf" multiple style="margin-top: 10px;"/>
+                    <input type="file" name="myFiles" id="fileInput" accept=".jpg, .jpeg, .png" multiple style="margin-top: 10px;"/>
                     <button id="uploadExpenseBtn" style="background-color: #6B705C; color: #FFF; padding: 10px 20px; border: none; border-radius: 5px; margin-top: 10px;">Upload</button>
+                    <h4 style="color: #3D3B2A; font-weight: bold; font-size: x-small;">*Please note: supported types include: .jpg, .jpeg, .png</h4>
                 </form>
             </div>
         </div>
