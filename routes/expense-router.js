@@ -15,6 +15,8 @@ const upload = multer({ storage: storage});
 const Invite = require('../models/invite-model');
 const nodemailer = require('nodemailer');
 const cookieParser = require('cookie-parser');
+const pdfPoppler = require('pdf-poppler');
+const fs = require('fs').promises;
 
 
 require('dotenv').config();
@@ -540,56 +542,102 @@ router.delete('/delete-img', async (req, res) => {
 
 })
 router.post('/upload', upload.array('myFiles', 15), async (req, res) => {
-    let grp = await File.findOne({grpName: req.session.groupId});
+    try {
+        let grp = await File.findOne({ grpName: req.session.groupId });
 
-    let files = req.files.map(file => ({
-        data: file.buffer,
-        contentType: file.mimetype
-    }))
+        let files = req.files.map(file => ({
+            data: file.buffer,
+            contentType: file.mimetype
+        }));
 
-    if (grp){
-        grp.images = files;
-        grp.markModified('images');
+        if (grp) {
+            grp.images = files;
+            grp.markModified('images');
+            await grp.save();
+        } else {
+            grp = new File({
+                grpName: req.session.groupId,
+                images: files
+            });
+            await grp.save();
+        }
+
+        files = grp.images;
+
+        const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API);
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+
+        let storeData = [];
+
+        for (let file of files) {
+            const { fileTypeFromBuffer } = await import('file-type');
+            const fileTypeResult = await fileTypeFromBuffer(file.data);
+            const mimeType = fileTypeResult ? fileTypeResult.mime : "image/jpg";
+
+            if (mimeType === 'application/pdf') {
+                console.log('mime true')
+                // Ensure temp directory exists
+                const tempDir = path.join(__dirname, 'temp');
+                try {
+                    await fs.access(tempDir);
+                } catch (error) {
+                    if (error.code === 'ENOENT') {
+                        await fs.mkdir(tempDir, { recursive: true });
+                    } else {
+                        throw error;
+                    }
+                }
+
+                let dateNow = Date.now();
+                let tempFilePath = path.join(tempDir, `${dateNow}.pdf`);
+                // Write buffer to temporary file
+                await fs.writeFile(tempFilePath, file.data);
+                
+                let opts = {
+                    format: 'jpg',
+                    out_dir: tempDir,
+                    out_prefix: path.basename(tempFilePath, path.extname(tempFilePath)),
+                    page: null
+                };
+
+                await pdfPoppler.convert(tempFilePath, opts).catch(err => {
+                    console.error('Conversion error', err);
+                });
+
+                await fs.unlink(tempFilePath);
+                tempFilePath = path.join(tempDir, `${dateNow}-1.jpg`)
+                
+                file.data = await fs.readFile(tempFilePath);
+                
+
+                file.contentType = 'image/jpg'
+                await fs.unlink(tempFilePath);
+                
+            }
+
+            
+            const prompt = "Based on the image, return me the name of the store, total amount spent (dont include the $ sign), look for something in format of MM/DD/YYYY and change it to YYYY-MM-DD if not there say no date, and a category based on these: Dining Out, Entertainment, Subscriptions, Groceries, Rent, Utilities, Amazon, and Misc (no period at the end of Misc), please seperate all responses via a , and dont add extra words";
+            const image = {
+                inlineData: {
+                    data: Buffer.from(file.data).toString('base64'),
+                    mimeType: 'image/jpg',
+                },
+            };
+
+            const result = await model.generateContent([prompt, image]);
+            let arr = result.response.text().split(",");
+            storeData.push(arr);
+        }
+
+        grp.storeData = storeData;
         await grp.save();
-    } else {
-        grp = new File({
-            grpName: req.session.groupId,
-            images: files
-        })
-        await grp.save();
+        res.redirect('/home');
+    } catch (error) {
+        console.error('Error during file upload processing', error);
+        res.status(500).send('Internal Server Error');
     }
-    
-    files = grp.images;
-
-
-    const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API);
-
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
-
-    let storeData = [];
-    const { fileTypeFromBuffer } = await import('file-type');
-
-    for (let file of files){
-        const fileTypeResult = await fileTypeFromBuffer(file.data);
-        const mimeType = fileTypeResult ? fileTypeResult.mime : "image/jpg";
-        const prompt = "Based on the image, return me the name of the store, total amount spent (dont include the $ sign), look for something in format of MM/DD/YYYY and change it to YYYY-MM-DD if not there say no date, and a category based on these: Dining Out, Entertainment, Subscriptions, Groceries, Rent, Utilities, Amazon, and Misc (no period at the end of Misc), please seperate all responses via a , and dont add extra words";
-        const image = {
-        inlineData: {
-            data: Buffer.from(file.data).toString('base64'),
-            mimeType: 'application/pdf',
-        },
-        };
-    
-        const result = await model.generateContent([prompt, image]);
-        let arr = result.response.text().split(",");
-        storeData.push(arr);
-    }
-
-    grp.storeData = storeData;
-    await grp.save();
-    res.redirect('/home');
-
 });
+
 
 router.post('/get-data', async (req, res) => {
     let currUser = await User.findOne({Username: req.session.userId});
