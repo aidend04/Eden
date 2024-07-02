@@ -15,10 +15,9 @@ const upload = multer({ storage: storage});
 const Invite = require('../models/invite-model');
 const nodemailer = require('nodemailer');
 const cookieParser = require('cookie-parser');
-const fs = require('fs').promises;
 
 
-require('dotenv').config(); 
+require('dotenv').config();
 
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
@@ -540,65 +539,54 @@ router.delete('/delete-img', async (req, res) => {
     res.send('done');
 
 })
-
-
 router.post('/upload', upload.array('myFiles', 15), async (req, res) => {
-    try {
-        let grp = await File.findOne({ grpName: req.session.groupId });
+    let grp = await File.findOne({grpName: req.session.groupId});
 
-        let files = req.files.map(file => ({
-            data: file.buffer,
-            contentType: file.mimetype
-        }));
+    let files = req.files.map(file => ({
+        data: file.buffer,
+        contentType: file.mimetype
+    }))
 
-        if (grp) {
-            grp.images = files;
-            grp.markModified('images');
-            await grp.save();
-        } else {
-            grp = new File({
-                grpName: req.session.groupId,
-                images: files
-            });
-            await grp.save();
-        }
-
-        files = grp.images;
-
-        const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
-
-        let storeData = [];
-
-        for (let file of files) {
-            const { fileTypeFromBuffer } = await import('file-type');
-            const fileTypeResult = await fileTypeFromBuffer(file.data);
-            const mimeType = fileTypeResult ? fileTypeResult.mime : "image/jpg";
-
-            // Use the image buffer with Google Generative AI
-            const prompt = "Based on the image or text, return me the name of the store, total amount spent (don't include the $ sign), look for something in format of MM/DD/YYYY and change it to YYYY-MM-DD if not there say no date, and a category based on these: Dining Out, Entertainment, Subscriptions, Groceries, Rent, Utilities, Amazon, and Misc (no period at the end of Misc), please separate all responses via a comma and don't add extra words.";
-            const image = {
-                inlineData: {
-                    data: Buffer.from(file.data).toString('base64')
-                },
-            };
-
-            const result = await model.generateContent([prompt, image]);
-            let arr = result.response.text().split(",");
-            storeData.push(arr);
-        }
-
-        grp.storeData = storeData;
+    if (grp){
+        grp.images = files;
+        grp.markModified('images');
         await grp.save();
-        res.redirect('/home');
-    } catch (error) {
-        console.error('Error during file upload processing', error);
-        res.status(500).send('Internal Server Error');
+    } else {
+        grp = new File({
+            grpName: req.session.groupId,
+            images: files
+        })
+        await grp.save();
     }
+    
+    files = grp.images;
+
+
+    const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API);
+
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+
+    let storeData = [];
+
+    for (let file of files){
+        const prompt = "Based on the image, return me the name of the store, total amount spent (dont include the $ sign), look for something in format of MM/DD/YYYY and change it to YYYY-MM-DD if not there say no date, and a category based on these: Dining Out, Entertainment, Subscriptions, Groceries, Rent, Utilities, Amazon, and Misc (no period at the end of Misc), please seperate all responses via a , and dont add extra words";
+        const image = {
+        inlineData: {
+            data: Buffer.from(file.data).toString('base64'),
+            mimeType: "image/jpg",
+        },
+        };
+    
+        const result = await model.generateContent([prompt, image]);
+        let arr = result.response.text().split(",");
+        storeData.push(arr);
+    }
+
+    grp.storeData = storeData;
+    await grp.save();
+    res.redirect('/home');
+
 });
-
-
-
 
 router.post('/get-data', async (req, res) => {
     let currUser = await User.findOne({Username: req.session.userId});
