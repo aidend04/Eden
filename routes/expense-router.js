@@ -15,7 +15,6 @@ const upload = multer({ storage: storage});
 const Invite = require('../models/invite-model');
 const nodemailer = require('nodemailer');
 const cookieParser = require('cookie-parser');
-const fileType = require('file-type');
 
 
 require('dotenv').config();
@@ -568,7 +567,8 @@ router.post('/upload', upload.array('myFiles', 15), async (req, res) => {
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
 
     let storeData = [];
-
+    const { fileTypeFromBuffer } = await import('file-type');
+    
     for (let file of files){
         const fileTypeResult = await fileType.fromBuffer(file.data);
         const mimeType = fileTypeResult ? fileTypeResult.mime : "image/jpg";
