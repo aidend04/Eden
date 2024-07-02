@@ -138,7 +138,7 @@ body {
     font-weight: bold;
     font-size: 1.2rem;
 }
-
+/* 
 @media (max-width: 600px) {
     .stylish-container {
         grid-template-columns: 1fr;
@@ -185,7 +185,7 @@ body {
     .stylish-container .total-container label {
         font-size: 1.1rem;
     }
-}
+} */
 
 
 .popup-backdrop {
@@ -584,10 +584,6 @@ input[type="text"], input[type="number"] {
     max-width: fit-content;
 }
 
-@media (max-width: 800px) {
-
-    
-}
 @media (max-width: 1200px) {
     #app {
         display: flex; /* Enable Flexbox */
@@ -638,9 +634,13 @@ input[type="text"], input[type="number"] {
 }
 
 @media (max-width: 768px) {
-    #table-container, #expenseUpload, #graph, #monthlyAvgGraph, #myBudget, #expensesDiv {
-        width: 90vw; /* Adjust the width to make it more blocky */
-        height: 90vw; /* Adjust the height to match the width, making it square */
+
+    #table-container, #graph, #monthlyAvgGraph {
+        width: 100%; /* Adjust the width to make it more blocky */
+        height: 450px; /* Adjust the height to match the width, making it square */
+        display: flex;
+        align-items: center;
+
     }
 
     #expensesDiv {
@@ -651,7 +651,7 @@ input[type="text"], input[type="number"] {
         flex-direction: column;
         font-size: 1.25em; /* You might want to adjust this as well */
     }
-    }
+    
 
     .form-content {
         padding: 1rem;
