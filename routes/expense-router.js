@@ -75,6 +75,8 @@ for (let job of jobs){
         delete cloneExpense._id;
         
         let clone = new Expense(cloneExpense);
+
+
     
         await clone.save();
     
@@ -91,8 +93,10 @@ for (let job of jobs){
         let loggedIn = await User.findOne({Username: req.session.userId});
     
         for (let user of clone.usersOwe){
+            user.paid = false;
+            user.markModified('usersOwe');
+            await user.save();
         // Check if the month already exists in the user's MonthlyExpenses
-        
         let currUser = await User.findById(user.user);
         if (currUser._id.equals(loggedIn._id)){
             userTruthy = true;
@@ -130,6 +134,69 @@ for (let job of jobs){
                 { $push: { MonthlyExpenses: { month: currMonth, expenses: [expense._id] } } }
             );
         }
+
+        let cat = clone.category;
+        const date = new Date();
+        const month = date.getMonth();
+    
+        let months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+    
+        let currMonth = months[month];
+
+        let cats = curr.ByCat[currMonth];
+
+        console.log("This is cats" + cats);
+
+        if (!curr._id.equals(userPaid._id)){
+            console.log('here is id' + userPaid._id);
+            console.log(grp);
+            console.log(grp.WhoOwe);
+            console.log(grp.WhoOwe[userPaid._id][curr._id] += Number(user.amount));
+            try{
+                grp.markModified('WhoOwe');
+                await grp.save();
+            } catch (error) {
+                console.error();
+            }
+
+        }
+
+        if (cats) {
+            console.log('cats was truthy')
+            curr.ByCat[currMonth][cat] += Number(user.amount);
+        } else {
+            console.log('cats was false')
+            curr.ByCat[currMonth] = {
+                'Dining Out': 0,
+                'Entertainment': 0,
+                'Groceries': 0,
+                'Subscriptions': 0,
+                'Rent': 0,
+                'Utilities': 0,
+                'Amazon': 0,
+                'Misc': 0
+            };
+
+            curr.markModified('ByCat');
+            await curr.save();
+
+            console.log(curr.ByCat[currMonth]);
+
+            
+            // Now add the amount to the correct category
+            try {
+                // Now add the amount to the correct category
+                curr.ByCat[currMonth][cat] = Number(user.amount);
+                curr.markModified('ByCat');
+                await curr.save();
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        curr.MonthlyAvg[currMonth] += Number(user.amount);
+        curr.markModified('MonthlyAvg');
+        await curr.save();
     
         }
     
@@ -138,6 +205,8 @@ for (let job of jobs){
         console.log(`Processing job for expenseId: ${expenseId}`);
       });
 }
+
+
 });
 
 agenda.on('error', (err) => {
@@ -336,7 +405,9 @@ router.post('/', async (req, res) => {
         
             for (let user of clone.usersOwe){
             // Check if the month already exists in the user's MonthlyExpenses
-            
+            user.paid = false;
+            user.markModified('usersOwe');
+            await user.save();
             let currUser = await User.findById(user.user);
             if (currUser._id.equals(loggedIn._id)){
                 userTruthy = true;
@@ -374,6 +445,69 @@ router.post('/', async (req, res) => {
                     { $push: { MonthlyExpenses: { month: currMonth, expenses: [expense._id] } } }
                 );
             }
+
+            let cat = req.body.category;
+        const date = new Date();
+        const month = date.getMonth();
+    
+        let months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+    
+        let currMonth = months[month];
+
+        let cats = curr.ByCat[currMonth];
+
+        console.log("This is cats" + cats);
+
+        if (!curr._id.equals(userPaid._id)){
+            console.log('here is id' + userPaid._id);
+            console.log(grp);
+            console.log(grp.WhoOwe);
+            console.log(grp.WhoOwe[userPaid._id][curr._id] += Number(user.amount));
+            try{
+                grp.markModified('WhoOwe');
+                await grp.save();
+            } catch (error) {
+                console.error();
+            }
+
+        }
+
+        if (cats) {
+            console.log('cats was truthy')
+            curr.ByCat[currMonth][cat] += Number(user.amount);
+        } else {
+            console.log('cats was false')
+            curr.ByCat[currMonth] = {
+                'Dining Out': 0,
+                'Entertainment': 0,
+                'Groceries': 0,
+                'Subscriptions': 0,
+                'Rent': 0,
+                'Utilities': 0,
+                'Amazon': 0,
+                'Misc': 0
+            };
+
+            curr.markModified('ByCat');
+            await curr.save();
+
+            console.log(curr.ByCat[currMonth]);
+
+            
+            // Now add the amount to the correct category
+            try {
+                // Now add the amount to the correct category
+                curr.ByCat[currMonth][cat] = Number(user.amount);
+                curr.markModified('ByCat');
+                await curr.save();
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        curr.MonthlyAvg[currMonth] += Number(user.amount);
+        curr.markModified('MonthlyAvg');
+        await curr.save();
         
             }
 
@@ -440,8 +574,8 @@ router.post('/', async (req, res) => {
             for (let user of clone.usersOwe){
             // Check if the month already exists in the user's MonthlyExpenses
             user.paid = false;
-            markModified('usersOwe');
-            console.log('this is clone id' + clone._id);
+            user.markModified('usersOwe');
+            await user.save();
 
             let currUser = await User.findById(user.user);
             if (currUser._id.equals(loggedIn._id)){
@@ -480,6 +614,69 @@ router.post('/', async (req, res) => {
                     { $push: { MonthlyExpenses: { month: currMonth, expenses: [clone._id] } } }
                 );
             }
+
+            let cat = req.body.category;
+        const date = new Date();
+        const month = date.getMonth();
+    
+        let months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+    
+        let currMonth = months[month];
+
+        let cats = curr.ByCat[currMonth];
+
+        console.log("This is cats" + cats);
+
+        if (!curr._id.equals(userPaid._id)){
+            console.log('here is id' + userPaid._id);
+            console.log(grp);
+            console.log(grp.WhoOwe);
+            console.log(grp.WhoOwe[userPaid._id][curr._id] += Number(user.amount));
+            try{
+                grp.markModified('WhoOwe');
+                await grp.save();
+            } catch (error) {
+                console.error();
+            }
+
+        }
+
+        if (cats) {
+            console.log('cats was truthy')
+            curr.ByCat[currMonth][cat] += Number(user.amount);
+        } else {
+            console.log('cats was false')
+            curr.ByCat[currMonth] = {
+                'Dining Out': 0,
+                'Entertainment': 0,
+                'Groceries': 0,
+                'Subscriptions': 0,
+                'Rent': 0,
+                'Utilities': 0,
+                'Amazon': 0,
+                'Misc': 0
+            };
+
+            curr.markModified('ByCat');
+            await curr.save();
+
+            console.log(curr.ByCat[currMonth]);
+
+            
+            // Now add the amount to the correct category
+            try {
+                // Now add the amount to the correct category
+                curr.ByCat[currMonth][cat] = Number(user.amount);
+                curr.markModified('ByCat');
+                await curr.save();
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        curr.MonthlyAvg[currMonth] += Number(user.amount);
+        curr.markModified('MonthlyAvg');
+        await curr.save();
         
             }
 
@@ -1039,6 +1236,7 @@ router.post('/invite', async (req, res) => {
 
 res.json({message: 'Success'});
 })
+
 
 
 module.exports = router;
