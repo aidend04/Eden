@@ -35,11 +35,150 @@ const fileSchema = new mongoose.Schema({
     storeData: []
 })
 
+
+let expense = 'none';
 const File = mongoose.model('File', fileSchema);
 
 const agenda = new Agenda({db: {address: mongoConnectionString}});
 
-let expense = 'none';
+async function unlockStaleJobs() {
+    const jobsCollection = mongoose.connection.collection('agendaJobs'); // Adjust collection name as needed
+  
+    const result = await jobsCollection.updateMany(
+      { lockedAt: { $exists: true } },
+      { $set: { lockedAt: null } }
+    );
+  
+    console.log(`Unlocked ${result.modifiedCount} stale jobs.`);
+  }
+
+  
+  agenda.processEvery('10 seconds');
+
+agenda.on('ready', async () => {
+  console.log('Agenda is ready');
+  await agenda.start();
+  unlockStaleJobs();
+  const jobs = await agenda.jobs({});
+
+
+for (let job of jobs){
+
+    let expenseId = job.attrs.name.substring(13)
+    agenda.define('create recur' + expenseId, async job => {
+        console.log('hi this is the repeater');
+        let { expenseId } = job.attrs.data;
+    
+        let cloneExpense = await Expense.findById(expenseId);
+    
+        cloneExpense = {...cloneExpense._doc};
+        delete cloneExpense._id;
+        
+        let clone = new Expense(cloneExpense);
+    
+        await clone.save();
+    
+        const date = new Date();
+        const month = date.getMonth();
+    
+        let months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+    
+        let currMonth = months[month];
+    
+        
+        let userTruthy = false;
+    
+        let loggedIn = await User.findOne({Username: req.session.userId});
+    
+        for (let user of clone.usersOwe){
+        // Check if the month already exists in the user's MonthlyExpenses
+        
+        let currUser = await User.findById(user.user);
+        if (currUser._id.equals(loggedIn._id)){
+            userTruthy = true;
+        }
+        const monthExists = currUser.MonthlyExpenses.some(me => me.month === currMonth);
+        
+        if (monthExists) {
+            // If the month already exists, add the expense to the expenses array for that month
+            await User.updateOne(
+                { _id: currUser._id, 'MonthlyExpenses.month': currMonth },
+                { $push: { 'MonthlyExpenses.$.expenses': expense._id } }
+            );
+        } else {
+            // If the month doesn't exist, add a new month to the MonthlyExpenses array and add the expense to the expenses array for that month
+            await User.updateOne(
+                { _id: currUser._id },
+                { $push: { MonthlyExpenses: { month: currMonth, expenses: [expense._id] } } }
+            );
+        }
+        }
+    
+        if (!userTruthy){
+            const monthExists = loggedIn.MonthlyExpenses.some(me => me.month === currMonth);
+        
+        if (monthExists) {
+            // If the month already exists, add the expense to the expenses array for that month
+            await User.updateOne(
+                { _id: loggedIn._id, 'MonthlyExpenses.month': currMonth },
+                { $push: { 'MonthlyExpenses.$.expenses': expense._id } }
+            );
+        } else {
+            // If the month doesn't exist, add a new month to the MonthlyExpenses array and add the expense to the expenses array for that month
+            await User.updateOne(
+                { _id: loggedIn._id },
+                { $push: { MonthlyExpenses: { month: currMonth, expenses: [expense._id] } } }
+            );
+        }
+    
+        }
+    
+        
+        // Your job logic here
+        console.log(`Processing job for expenseId: ${expenseId}`);
+      });
+}
+});
+
+agenda.on('error', (err) => {
+  console.log('Agenda error:', err);
+});
+
+
+
+
+// Define a generic job handler
+
+mongoose.connection.on('disconnected', () => {
+    console.log('MongoDB disconnected! Attempting to stop Agenda...');
+    agenda.stop().then(() => console.log('Agenda stopped due to MongoDB disconnection.'));
+  });
+  
+  // Graceful shutdown
+  const gracefulShutdown = async () => {
+    console.log('Server is shutting down. Stopping Agenda...');
+    await agenda.stop();
+    console.log('Agenda stopped.');
+    process.exit(0); // Optional: depending on your shutdown requirements
+  };
+  
+  // Listen for system signals
+  process.on('SIGINT', gracefulShutdown);
+  process.on('SIGTERM', gracefulShutdown);
+
+
+  agenda.define('remove recur job', async job => {
+    // Extract the expenseId from the job's data
+    const { expenseId } = job.attrs.data;
+
+    // Use the expenseId to build the name of the job you want to cancel
+    const jobName = 'create recur' + expenseId;
+
+    // Cancel the job with the matching name
+    await agenda.cancel({ name: jobName });
+
+});
+
 
 router.post('/', async (req, res) => {
 
@@ -169,9 +308,83 @@ router.post('/', async (req, res) => {
            await expense.save();
            const interval = convert(req.body.return_prices.recur.interval)
            
+           let expenseId = expense._id;
+           agenda.define('create recur' + expenseId, async job => {
+            console.log('hi this is the repeater');
+            let { expenseId } = job.attrs.data;
 
-           await agenda.every(interval, 'create recur'+expense._id, { expenseId: expense._id });
+            let cloneExpense = await Expense.findById(expenseId);
+
+            cloneExpense = {...cloneExpense._doc};
+            delete cloneExpense._id;
             
+            let clone = new Expense(cloneExpense);
+
+            await clone.save();
+
+            const date = new Date();
+            const month = date.getMonth();
+        
+            let months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+        
+            let currMonth = months[month];
+        
+            
+            let userTruthy = false;
+        
+            let loggedIn = await User.findOne({Username: req.session.userId});
+        
+            for (let user of clone.usersOwe){
+            // Check if the month already exists in the user's MonthlyExpenses
+            
+            let currUser = await User.findById(user.user);
+            if (currUser._id.equals(loggedIn._id)){
+                userTruthy = true;
+            }
+            const monthExists = currUser.MonthlyExpenses.some(me => me.month === currMonth);
+            
+            if (monthExists) {
+                // If the month already exists, add the expense to the expenses array for that month
+                await User.updateOne(
+                    { _id: currUser._id, 'MonthlyExpenses.month': currMonth },
+                    { $push: { 'MonthlyExpenses.$.expenses': expense._id } }
+                );
+            } else {
+                // If the month doesn't exist, add a new month to the MonthlyExpenses array and add the expense to the expenses array for that month
+                await User.updateOne(
+                    { _id: currUser._id },
+                    { $push: { MonthlyExpenses: { month: currMonth, expenses: [expense._id] } } }
+                );
+            }
+            }
+        
+            if (!userTruthy){
+                const monthExists = loggedIn.MonthlyExpenses.some(me => me.month === currMonth);
+            
+            if (monthExists) {
+                // If the month already exists, add the expense to the expenses array for that month
+                await User.updateOne(
+                    { _id: loggedIn._id, 'MonthlyExpenses.month': currMonth },
+                    { $push: { 'MonthlyExpenses.$.expenses': expense._id } }
+                );
+            } else {
+                // If the month doesn't exist, add a new month to the MonthlyExpenses array and add the expense to the expenses array for that month
+                await User.updateOne(
+                    { _id: loggedIn._id },
+                    { $push: { MonthlyExpenses: { month: currMonth, expenses: [expense._id] } } }
+                );
+            }
+        
+            }
+
+            
+            // Your job logic here
+            console.log(`Processing job for expenseId: ${expenseId}`);
+          });
+
+           await agenda.every(interval, 'create recur' + expense._id, {expenseId: expenseId});
+
+           console.log('done agenda')
         } else {
             expense = new Expense({
                 amount: req.body.amount,
@@ -198,7 +411,84 @@ router.post('/', async (req, res) => {
            }); 
            const interval = convert(req.body.return_prices.recur.interval); 
            await expense.save();
-           await agenda.every(interval, 'create recur'+expense._id, { expenseId: expense._id.toString() });
+           let expenseId = expense._id;
+           agenda.define('create recur' + expenseId, async job => {
+            console.log('hi this is the repeater');
+            let { expenseId } = job.attrs.data;
+
+            let cloneExpense = await Expense.findById(expenseId);
+
+            cloneExpense = {...cloneExpense._doc};
+            delete cloneExpense._id;
+            
+            let clone = new Expense(cloneExpense);
+
+            await clone.save();
+
+            const date = new Date();
+            const month = date.getMonth();
+        
+            let months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+        
+            let currMonth = months[month];
+        
+            
+            let userTruthy = false;
+        
+            let loggedIn = await User.findOne({Username: req.session.userId});
+        
+            for (let user of clone.usersOwe){
+            // Check if the month already exists in the user's MonthlyExpenses
+            user.paid = false;
+            markModified('usersOwe');
+            console.log('this is clone id' + clone._id);
+
+            let currUser = await User.findById(user.user);
+            if (currUser._id.equals(loggedIn._id)){
+                userTruthy = true;
+            }
+            const monthExists = currUser.MonthlyExpenses.some(me => me.month === currMonth);
+            
+            if (monthExists) {
+                // If the month already exists, add the expense to the expenses array for that month
+                await User.updateOne(
+                    { _id: currUser._id, 'MonthlyExpenses.month': currMonth },
+                    { $push: { 'MonthlyExpenses.$.expenses': clone._id } }
+                );
+            } else {
+                // If the month doesn't exist, add a new month to the MonthlyExpenses array and add the expense to the expenses array for that month
+                await User.updateOne(
+                    { _id: currUser._id },
+                    { $push: { MonthlyExpenses: { month: currMonth, expenses: [clone._id] } } }
+                );
+            }
+            }
+        
+            if (!userTruthy){
+                const monthExists = loggedIn.MonthlyExpenses.some(me => me.month === currMonth);
+            
+            if (monthExists) {
+                // If the month already exists, add the expense to the expenses array for that month
+                await User.updateOne(
+                    { _id: loggedIn._id, 'MonthlyExpenses.month': currMonth },
+                    { $push: { 'MonthlyExpenses.$.expenses': clone._id } }
+                );
+            } else {
+                // If the month doesn't exist, add a new month to the MonthlyExpenses array and add the expense to the expenses array for that month
+                await User.updateOne(
+                    { _id: loggedIn._id },
+                    { $push: { MonthlyExpenses: { month: currMonth, expenses: [clone._id] } } }
+                );
+            }
+        
+            }
+
+            
+            // Your job logic here
+            console.log(`Processing job for expenseId: ${expenseId}`);
+          });
+
+           await agenda.every(interval, 'create recur' + expense._id, {expenseId: expenseId});
 
         } else {
             expense = new Expense({
@@ -687,92 +977,9 @@ router.post('/create-budget', async (req, res) => {
 
 });
 
-agenda.define('create recur'+expense._id, async job => {
-    // Logic to send a reminder
-    let { expenseId } = job.attrs.data;
 
-    let expense = await Expense.findOne({_id: expenseId});
 
-    expense.date = new Date().toISOString().split('T')[0];
 
-    let cat = expense.category;
-
-    let month = new Date().getMonth();
-    let months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-
-    let currMonth = months[month];
-  
-    let date = new Date(expense.date);
-
-    let month1 = date.getMonth();
-    let month2 = null;
-    switch (expense.recur.interval) {
-        case 'daily':
-            date.setDate(date.getDate() + 1);
-            month2 = date.getMonth();
-            break;
-        case 'weekly':
-            date.setDate(date.getDate() + 7);
-            month2 = date.getMonth();
-            break;
-        case 'bi-weekly':
-            date.setDate(date.getDate() + 14);
-            month2 = date.getMonth();
-            break;
-        case 'monthly':
-            date.setMonth(date.getMonth() + 1);
-            month2 = date.getMonth();
-            break;
-        case 'annually':
-            date.setYear(date.getFullYear() + 1);
-            month2 = date.getMonth();
-            break;
-    }
-
-    
-        for (let object of expense.usersOwe){
-            if (!object.user.equals(expense.userPaid))
-                object.paid = false;
-            
-            let curr = await User.findById(object.user);
-    
-            curr.ByCat[currMonth][cat] += Number(object.amount);
-            curr.MonthlyAvg[currMonth] += Number(object.amount);
-
-            if (month1 != month2){
-                if (curr.MonthlyExpenses.months[month2]) {
-                    // If the month already exists, add the expense to the expenses array for that month
-                    await User.updateOne(
-                        { _id: currUser._id, 'MonthlyExpenses.month': months[month2] },
-                        { $push: { 'MonthlyExpenses.$.expenses': expense._id } }
-                    );
-                } 
-            }
-
-            await curr.save();
-    
-        }   
-    expense.recur.nextDueDate = date.toString();
-
-    await expense.save();
-
-  });
-
-  agenda.define('remove recur job', async job => {
-    // Extract the expenseId from the job's data
-    const { expenseId } = job.attrs.data;
-
-    // Use the expenseId to build the name of the job you want to cancel
-    const jobName = 'create recur' + expenseId;
-
-    // Cancel the job with the matching name
-    await agenda.cancel({ name: jobName });
-
-});
-
-(async function() { // IIFE to give us async context
-    await agenda.start();
-})();
 
 function convert(interval){
     let str = '';
